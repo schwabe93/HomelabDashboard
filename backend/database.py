@@ -64,6 +64,18 @@ CREATE TABLE IF NOT EXISTS arp_cache (
     interface    TEXT,
     updated_at   INTEGER NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS traffic_daily (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    date        TEXT NOT NULL,
+    interface   TEXT NOT NULL,
+    iface_name  TEXT NOT NULL,
+    rx_bytes    INTEGER NOT NULL DEFAULT 0,
+    tx_bytes    INTEGER NOT NULL DEFAULT 0,
+    UNIQUE(date, interface)
+);
+CREATE INDEX IF NOT EXISTS idx_tdaily_date  ON traffic_daily(date);
+CREATE INDEX IF NOT EXISTS idx_tdaily_iface ON traffic_daily(interface, date);
 """
 
 
@@ -87,4 +99,6 @@ async def purge_old_data():
         await db.execute("DELETE FROM client_bandwidth   WHERE timestamp < strftime('%s','now') - 86400")
         await db.execute("DELETE FROM firewall_blocked   WHERE timestamp < strftime('%s','now') - 172800")
         await db.execute("DELETE FROM system_snapshots   WHERE timestamp < strftime('%s','now') - 604800")
+        # Keep 2 years of daily traffic
+        await db.execute("DELETE FROM traffic_daily WHERE date < date('now','-730 days')")
         await db.commit()

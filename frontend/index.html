@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Homelab Dashboard</title>
   <link rel="stylesheet" href="css/dashboard.css">
 </head>
@@ -10,10 +10,10 @@
 
 <!-- ── Header ── -->
 <div id="header">
-  <h1>🏠 Homelab Dashboard</h1>
+  <h1>🏠 Homelab</h1>
 
   <div class="stat-pill">
-    <span class="dot" id="sys-cpu-dot"></span>
+    <span class="dot dot-pulse" id="sys-cpu-dot"></span>
     <span class="label">CPU</span>
     <span class="value" id="sys-cpu">—</span>
   </div>
@@ -40,27 +40,25 @@
   </div>
 
   <div class="stat-pill">
-    <span class="label">Uptime</span>
+    <span class="label">Up</span>
     <span class="value" id="sys-uptime">—</span>
   </div>
 
-  <!-- WAN IPs (dynamisch befüllt) -->
   <div id="wan-pills"></div>
 
   <div class="stat-pill">
-    <span class="label" id="sys-hostname">OPNsense</span>
-    <span class="value" id="sys-version" style="color:var(--muted)">—</span>
+    <span class="label" id="sys-hostname" style="color:var(--accent)">OPNsense</span>
   </div>
 
   <span id="last-update"></span>
 </div>
 
-<!-- ── Main grid ── -->
+<!-- ── Grid ── -->
 <div class="grid">
 
   <!-- Gateway Status -->
   <div class="card">
-    <div class="card-header">Gateway Status</div>
+    <div class="card-header">🔗 Gateway Status</div>
     <div class="card-body" id="gateways-body">
       <div class="loading">Warte auf Daten…</div>
     </div>
@@ -68,39 +66,58 @@
 
   <!-- DNS Stats -->
   <div class="card">
-    <div class="card-header">Unbound DNS</div>
+    <div class="card-header">🔍 Unbound DNS</div>
     <div class="card-body">
       <div class="stat-row">
         <div class="stat-box">
           <div class="big-num" id="dns-queries">—</div>
-          <div class="big-label">Anfragen gesamt</div>
+          <div class="big-label">Anfragen</div>
         </div>
         <div class="stat-box">
           <div class="big-num" id="dns-cache-pct" style="color:var(--green)">—</div>
-          <div class="big-label">Cache-Hit-Rate</div>
+          <div class="big-label">Cache Hit</div>
         </div>
         <div class="stat-box">
           <div class="big-num" id="dns-avg-ms" style="color:var(--accent)">—</div>
-          <div class="big-label">Ø Auflösungszeit</div>
+          <div class="big-label">Ø Latenz</div>
         </div>
       </div>
-      <div style="margin-top:8px">
-        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-bottom:3px">
-          <span>Cache Hits: <span id="dns-hits" style="color:var(--green)">—</span></span>
-          <span>Cache Miss: <span id="dns-miss" style="color:var(--red)">—</span></span>
-        </div>
-        <div class="gauge-bar" style="height:6px">
-          <div class="gauge-fill" id="dns-cache-bar" style="width:0%;background:var(--green)"></div>
-        </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px">
+        <span>Hits: <span id="dns-hits" style="color:var(--green)">—</span></span>
+        <span>Miss: <span id="dns-miss" style="color:var(--red)">—</span></span>
+      </div>
+      <div class="gauge-bar" style="height:6px">
+        <div class="gauge-fill" id="dns-cache-bar" style="width:0%;background:var(--green)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Traffic History -->
+  <div class="card grid-full">
+    <div class="card-header">
+      📊 Download / Upload Statistik
+      <div class="tabs" style="margin:0">
+        <button class="tab-btn active" onclick="setTrafficPeriod('day',this)">Heute</button>
+        <button class="tab-btn" onclick="setTrafficPeriod('week',this)">Woche</button>
+        <button class="tab-btn" onclick="setTrafficPeriod('month',this)">Monat</button>
+        <button class="tab-btn" onclick="setTrafficPeriod('year',this)">Jahr</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="traffic-totals" id="traffic-totals">
+        <div class="traffic-total-box"><div class="period">Heute</div><div class="rx-val" id="tt-today-rx">—</div><div class="tx-val" id="tt-today-tx">—</div></div>
+        <div class="traffic-total-box"><div class="period">Woche</div><div class="rx-val" id="tt-week-rx">—</div><div class="tx-val" id="tt-week-tx">—</div></div>
+        <div class="traffic-total-box"><div class="period">Monat</div><div class="rx-val" id="tt-month-rx">—</div><div class="tx-val" id="tt-month-tx">—</div></div>
+      </div>
+      <div class="chart-wrap" style="height:200px">
+        <canvas id="chart-traffic"></canvas>
       </div>
     </div>
   </div>
 
   <!-- Interface Traffic -->
   <div class="card grid-full">
-    <div class="card-header">
-      Interface Traffic (letzte 1 Stunde)
-    </div>
+    <div class="card-header">📡 Interface Traffic <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(letzte 1h)</span></div>
     <div class="card-body">
       <div class="iface-grid" id="iface-grid"></div>
     </div>
@@ -108,49 +125,12 @@
 
   <!-- Interface Errors -->
   <div class="card">
-    <div class="card-header">Interface Fehler</div>
+    <div class="card-header">⚠️ Interface Fehler</div>
     <div class="card-body">
-      <table>
-        <thead>
-          <tr><th>Interface</th><th>Input Err</th><th>Output Err</th><th>Queue Drops</th></tr>
-        </thead>
-        <tbody id="iface-errors-tbody">
-          <tr><td colspan="4" class="loading">Warte auf Daten…</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Per-Client Bandwidth -->
-  <div class="card grid-full">
-    <div class="card-header">
-      Clients — Bandwidth
-      <span class="badge" id="clients-count"></span>
-    </div>
-    <div class="card-body">
-      <div class="banner" id="netflow-banner" style="display:none">
-        ⚠️&nbsp;
-        <span>NetFlow ist nicht aktiv. Aktiviere es in OPNsense unter
-          <strong>Reporting → NetFlow</strong>: Interface <strong>LAN (vtnet0)</strong> auswählen,
-          Collect aktivieren → Save → Apply.</span>
-      </div>
-      <input type="text" class="search-bar" id="client-search" placeholder="IP oder Hostname suchen…">
-      <div class="scroll-y">
-        <table id="clients-table">
-          <thead>
-            <tr>
-              <th data-sort="display" onclick="setSortCol('display')">Gerät</th>
-              <th data-sort="ip" onclick="setSortCol('ip')">IP</th>
-              <th>MAC</th>
-              <th class="sorted" data-sort="rx_5min" onclick="setSortCol('rx_5min')">▼ Download 5min</th>
-              <th data-sort="tx_5min" onclick="setSortCol('tx_5min')">▲ Upload 5min</th>
-              <th data-sort="rx_today" onclick="setSortCol('rx_today')">▼ Download Heute</th>
-              <th data-sort="tx_today" onclick="setSortCol('tx_today')">▲ Upload Heute</th>
-            </tr>
-          </thead>
-          <tbody id="clients-tbody">
-            <tr><td colspan="7" class="loading">Warte auf Daten…</td></tr>
-          </tbody>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Interface</th><th>Input Err</th><th>Output Err</th><th>Drops</th></tr></thead>
+          <tbody id="iface-errors-tbody"><tr><td colspan="4" class="loading">…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -158,7 +138,7 @@
 
   <!-- Firewall States -->
   <div class="card">
-    <div class="card-header">Firewall States</div>
+    <div class="card-header">🔥 Firewall States</div>
     <div class="card-body">
       <div class="stat-row">
         <div class="stat-box">
@@ -166,41 +146,63 @@
           <div class="big-label">Aktive Verbindungen</div>
         </div>
       </div>
-      <div style="margin-top:10px; font-size:11px; color:var(--muted); margin-bottom:4px;">TOP QUELL-IPs</div>
-      <div class="scroll-y" style="max-height:200px">
-        <table>
-          <thead>
-            <tr><th>IP</th><th>Verbindungen</th></tr>
-          </thead>
-          <tbody id="fw-top-tbody"></tbody>
-        </table>
+      <div class="section-label">Top Quell-IPs</div>
+      <div class="scroll-y" style="max-height:180px">
+        <div class="table-wrap">
+          <table><thead><tr><th>IP</th><th>Verbindungen</th></tr></thead>
+          <tbody id="fw-top-tbody"></tbody></table>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Top Blocked IPs -->
   <div class="card">
-    <div class="card-header">Top Blocked IPs <span style="color:var(--muted);font-weight:400">(letzte 1h)</span></div>
+    <div class="card-header">🚫 Top Blocked IPs <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(1h)</span></div>
     <div class="card-body">
-      <div class="scroll-y" style="max-height:270px">
-        <table>
-          <thead>
-            <tr><th>Quell-IP</th><th>Geblockt</th><th>Proto</th><th>Dst-Port</th></tr>
-          </thead>
-          <tbody id="blocked-tbody">
-            <tr><td colspan="4" class="loading">Warte auf Daten…</td></tr>
-          </tbody>
-        </table>
+      <div class="scroll-y" style="max-height:260px">
+        <div class="table-wrap">
+          <table><thead><tr><th>Quell-IP</th><th>Geblockt</th><th>Proto</th><th>Port</th></tr></thead>
+          <tbody id="blocked-tbody"><tr><td colspan="4" class="loading">…</td></tr></tbody></table>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- System Health Chart -->
+  <!-- System Health -->
   <div class="card">
-    <div class="card-header">System Health <span style="color:var(--muted);font-weight:400">(letzte 6h)</span></div>
+    <div class="card-header">💻 System Health <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(6h)</span></div>
     <div class="card-body">
-      <div class="chart-wrap" style="height:180px">
-        <canvas id="chart-system"></canvas>
+      <div class="chart-wrap" style="height:180px"><canvas id="chart-system"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Per-Client Bandwidth -->
+  <div class="card grid-full">
+    <div class="card-header">
+      👥 Clients — Bandwidth
+      <span class="badge" id="clients-count"></span>
+    </div>
+    <div class="card-body">
+      <div class="banner" id="netflow-banner" style="display:none">
+        ⚠️&nbsp;<span>NetFlow nicht aktiv → OPNsense: <strong>Reporting → NetFlow</strong> → LAN auswählen, Collect aktivieren → Apply</span>
+      </div>
+      <input type="text" class="search-bar" id="client-search" placeholder="🔍  IP oder Gerätename suchen…">
+      <div class="scroll-y" style="max-height:320px">
+        <div class="table-wrap">
+          <table id="clients-table">
+            <thead><tr>
+              <th data-sort="display" onclick="setSortCol('display')">Gerät</th>
+              <th data-sort="ip" onclick="setSortCol('ip')">IP</th>
+              <th>MAC</th>
+              <th class="sorted" data-sort="rx_5min" onclick="setSortCol('rx_5min')">▼ DL 5min</th>
+              <th data-sort="tx_5min" onclick="setSortCol('tx_5min')">▲ UL 5min</th>
+              <th data-sort="rx_today" onclick="setSortCol('rx_today')">▼ DL Heute</th>
+              <th data-sort="tx_today" onclick="setSortCol('tx_today')">▲ UL Heute</th>
+            </tr></thead>
+            <tbody id="clients-tbody"><tr><td colspan="7" class="loading">Warte auf NetFlow-Daten…</td></tr></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -208,20 +210,16 @@
   <!-- ARP / Devices -->
   <div class="card grid-full">
     <div class="card-header">
-      Geräte im Netzwerk (ARP)
+      🖥️ Geräte im Netzwerk
       <span class="badge" id="hosts-count">—</span>
     </div>
     <div class="card-body">
-      <input type="text" class="search-bar" id="host-search" placeholder="IP, Hersteller oder Hostname suchen…">
-      <div class="scroll-y">
-        <table>
-          <thead>
-            <tr><th>IP</th><th>MAC</th><th>Hersteller / Hostname</th><th>Interface</th></tr>
-          </thead>
-          <tbody id="hosts-tbody">
-            <tr><td colspan="4" class="loading">Warte auf Daten…</td></tr>
-          </tbody>
-        </table>
+      <input type="text" class="search-bar" id="host-search" placeholder="🔍  IP, Hersteller oder Hostname suchen…">
+      <div class="scroll-y" style="max-height:280px">
+        <div class="table-wrap">
+          <table><thead><tr><th>IP</th><th>MAC</th><th>Hersteller / Hostname</th><th>Interface</th></tr></thead>
+          <tbody id="hosts-tbody"><tr><td colspan="4" class="loading">…</td></tr></tbody></table>
+        </div>
       </div>
     </div>
   </div>

@@ -82,6 +82,51 @@ function updateSystemChart(history) {
   chart.update('none');
 }
 
+// ── Traffic bar chart ──────────────────────────────────────────
+const trafficChart = { instance: null };
+
+const IFACE_COLORS = {
+  pppoe0:  { rx: '#f0883e', tx: 'rgba(240,136,62,.4)' },
+  vtnet2:  { rx: '#bc8cff', tx: 'rgba(188,140,255,.4)' },
+  vtnet0:  { rx: '#58a6ff', tx: 'rgba(88,166,255,.4)' },
+  vtnet1:  { rx: '#3fb950', tx: 'rgba(63,185,80,.4)' },
+  default: { rx: '#8b949e', tx: 'rgba(139,148,158,.4)' },
+};
+
+function buildTrafficChart(labels, datasets) {
+  const ctx = document.getElementById('chart-traffic');
+  if (!ctx) return;
+  if (trafficChart.instance) trafficChart.instance.destroy();
+  trafficChart.instance = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: { duration: 300 },
+      plugins: {
+        legend: { display: true, labels: { color: '#8b949e', font: { size: 10 }, boxWidth: 10 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${formatBytes(ctx.parsed.y)}`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: { color: '#8b949e', font: { size: 10 }, maxTicksLimit: 12 },
+          grid: { color: '#21262d' },
+          stacked: false,
+        },
+        y: {
+          ticks: { color: '#8b949e', font: { size: 10 }, callback: v => formatBytes(v, 0) },
+          grid: { color: '#21262d' },
+          beginAtZero: true,
+        },
+      },
+    },
+  });
+}
+
 const sparkCharts = {};
 
 function updateSparkline(canvasId, history) {

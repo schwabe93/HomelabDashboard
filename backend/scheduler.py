@@ -1,5 +1,5 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from collectors import system_stats, interface_traffic, firewall_states, firewall_log, arp_hosts, netflow_clients
+from collectors import system_stats, interface_traffic, firewall_states, firewall_log, arp_hosts, netflow_clients, traffic_daily
 from database import purge_old_data
 
 _scheduler: AsyncIOScheduler | None = None
@@ -14,6 +14,7 @@ def start_scheduler():
     _scheduler.add_job(firewall_log.collect,       "interval", seconds=60,   id="fw_log",     misfire_grace_time=10)
     _scheduler.add_job(arp_hosts.collect,          "interval", seconds=120,  id="arp",        misfire_grace_time=20)
     _scheduler.add_job(netflow_clients.collect,    "interval", seconds=300,  id="netflow",    misfire_grace_time=30)
+    _scheduler.add_job(traffic_daily.collect,    "interval", minutes=30,  id="traffic_daily", misfire_grace_time=60)
     _scheduler.add_job(purge_old_data,             "cron",     hour=3, minute=0, id="purge")
     _scheduler.start()
     print("[scheduler] started")
