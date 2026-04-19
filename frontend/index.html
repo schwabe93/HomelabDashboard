@@ -44,6 +44,9 @@
     <span class="value" id="sys-uptime">—</span>
   </div>
 
+  <!-- WAN IPs (dynamisch befüllt) -->
+  <div id="wan-pills"></div>
+
   <div class="stat-pill">
     <span class="label" id="sys-hostname">OPNsense</span>
     <span class="value" id="sys-version" style="color:var(--muted)">—</span>
@@ -55,6 +58,44 @@
 <!-- ── Main grid ── -->
 <div class="grid">
 
+  <!-- Gateway Status -->
+  <div class="card">
+    <div class="card-header">Gateway Status</div>
+    <div class="card-body" id="gateways-body">
+      <div class="loading">Warte auf Daten…</div>
+    </div>
+  </div>
+
+  <!-- DNS Stats -->
+  <div class="card">
+    <div class="card-header">Unbound DNS</div>
+    <div class="card-body">
+      <div class="stat-row">
+        <div class="stat-box">
+          <div class="big-num" id="dns-queries">—</div>
+          <div class="big-label">Anfragen gesamt</div>
+        </div>
+        <div class="stat-box">
+          <div class="big-num" id="dns-cache-pct" style="color:var(--green)">—</div>
+          <div class="big-label">Cache-Hit-Rate</div>
+        </div>
+        <div class="stat-box">
+          <div class="big-num" id="dns-avg-ms" style="color:var(--accent)">—</div>
+          <div class="big-label">Ø Auflösungszeit</div>
+        </div>
+      </div>
+      <div style="margin-top:8px">
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-bottom:3px">
+          <span>Cache Hits: <span id="dns-hits" style="color:var(--green)">—</span></span>
+          <span>Cache Miss: <span id="dns-miss" style="color:var(--red)">—</span></span>
+        </div>
+        <div class="gauge-bar" style="height:6px">
+          <div class="gauge-fill" id="dns-cache-bar" style="width:0%;background:var(--green)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Interface Traffic -->
   <div class="card grid-full">
     <div class="card-header">
@@ -62,6 +103,21 @@
     </div>
     <div class="card-body">
       <div class="iface-grid" id="iface-grid"></div>
+    </div>
+  </div>
+
+  <!-- Interface Errors -->
+  <div class="card">
+    <div class="card-header">Interface Fehler</div>
+    <div class="card-body">
+      <table>
+        <thead>
+          <tr><th>Interface</th><th>Input Err</th><th>Output Err</th><th>Queue Drops</th></tr>
+        </thead>
+        <tbody id="iface-errors-tbody">
+          <tr><td colspan="4" class="loading">Warte auf Daten…</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
