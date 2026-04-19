@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homelab Dashboard</title>
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+<!-- ── Header ── -->
+<div id="header">
+  <h1>🏠 Homelab Dashboard</h1>
+
+  <div class="stat-pill">
+    <span class="dot" id="sys-cpu-dot"></span>
+    <span class="label">CPU</span>
+    <span class="value" id="sys-cpu">—</span>
+  </div>
+
+  <div class="stat-pill">
+    <span class="dot" id="sys-ram-dot"></span>
+    <span class="label">RAM</span>
+    <span class="value" id="sys-ram">—</span>
+  </div>
+
+  <div class="stat-pill">
+    <span class="label">States</span>
+    <span class="value" id="sys-states">—</span>
+  </div>
+
+  <div class="stat-pill">
+    <span class="label">Load</span>
+    <span class="value" id="sys-load">—</span>
+  </div>
+
+  <div class="stat-pill">
+    <span class="label">Disk</span>
+    <span class="value" id="sys-disk">—</span>
+  </div>
+
+  <div class="stat-pill">
+    <span class="label">Uptime</span>
+    <span class="value" id="sys-uptime">—</span>
+  </div>
+
+  <div class="stat-pill">
+    <span class="label" id="sys-hostname">OPNsense</span>
+    <span class="value" id="sys-version" style="color:var(--muted)">—</span>
+  </div>
+
+  <span id="last-update"></span>
+</div>
+
+<!-- ── Main grid ── -->
+<div class="grid">
+
+  <!-- Interface Traffic -->
+  <div class="card grid-full">
+    <div class="card-header">
+      Interface Traffic (letzte 1 Stunde)
+    </div>
+    <div class="card-body">
+      <div class="iface-grid" id="iface-grid"></div>
+    </div>
+  </div>
+
+  <!-- Per-Client Bandwidth -->
+  <div class="card grid-full">
+    <div class="card-header">
+      Clients — Bandwidth
+      <span class="badge" id="clients-count"></span>
+    </div>
+    <div class="card-body">
+      <div class="banner" id="netflow-banner" style="display:none">
+        ⚠️&nbsp;
+        <span>NetFlow ist nicht aktiv. Aktiviere es in OPNsense unter
+          <strong>Reporting → NetFlow</strong>: Interface <strong>LAN (vtnet0)</strong> auswählen,
+          Collect aktivieren → Save → Apply.</span>
+      </div>
+      <input type="text" class="search-bar" id="client-search" placeholder="IP oder Hostname suchen…">
+      <div class="scroll-y">
+        <table id="clients-table">
+          <thead>
+            <tr>
+              <th data-sort="display" onclick="setSortCol('display')">Gerät</th>
+              <th data-sort="ip" onclick="setSortCol('ip')">IP</th>
+              <th>MAC</th>
+              <th class="sorted" data-sort="rx_5min" onclick="setSortCol('rx_5min')">▼ Download 5min</th>
+              <th data-sort="tx_5min" onclick="setSortCol('tx_5min')">▲ Upload 5min</th>
+              <th data-sort="rx_today" onclick="setSortCol('rx_today')">▼ Download Heute</th>
+              <th data-sort="tx_today" onclick="setSortCol('tx_today')">▲ Upload Heute</th>
+            </tr>
+          </thead>
+          <tbody id="clients-tbody">
+            <tr><td colspan="7" class="loading">Warte auf Daten…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firewall States -->
+  <div class="card">
+    <div class="card-header">Firewall States</div>
+    <div class="card-body">
+      <div class="stat-row">
+        <div class="stat-box">
+          <div class="big-num" id="fw-states-count">—</div>
+          <div class="big-label">Aktive Verbindungen</div>
+        </div>
+      </div>
+      <div style="margin-top:10px; font-size:11px; color:var(--muted); margin-bottom:4px;">TOP QUELL-IPs</div>
+      <div class="scroll-y" style="max-height:200px">
+        <table>
+          <thead>
+            <tr><th>IP</th><th>Verbindungen</th></tr>
+          </thead>
+          <tbody id="fw-top-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Blocked IPs -->
+  <div class="card">
+    <div class="card-header">Top Blocked IPs <span style="color:var(--muted);font-weight:400">(letzte 1h)</span></div>
+    <div class="card-body">
+      <div class="scroll-y" style="max-height:270px">
+        <table>
+          <thead>
+            <tr><th>Quell-IP</th><th>Geblockt</th><th>Proto</th><th>Dst-Port</th></tr>
+          </thead>
+          <tbody id="blocked-tbody">
+            <tr><td colspan="4" class="loading">Warte auf Daten…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Health Chart -->
+  <div class="card">
+    <div class="card-header">System Health <span style="color:var(--muted);font-weight:400">(letzte 6h)</span></div>
+    <div class="card-body">
+      <div class="chart-wrap" style="height:180px">
+        <canvas id="chart-system"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARP / Devices -->
+  <div class="card grid-full">
+    <div class="card-header">
+      Geräte im Netzwerk (ARP)
+      <span class="badge" id="hosts-count">—</span>
+    </div>
+    <div class="card-body">
+      <input type="text" class="search-bar" id="host-search" placeholder="IP, Hersteller oder Hostname suchen…">
+      <div class="scroll-y">
+        <table>
+          <thead>
+            <tr><th>IP</th><th>MAC</th><th>Hersteller / Hostname</th><th>Interface</th></tr>
+          </thead>
+          <tbody id="hosts-tbody">
+            <tr><td colspan="4" class="loading">Warte auf Daten…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /grid -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
