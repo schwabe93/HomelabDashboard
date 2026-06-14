@@ -210,6 +210,68 @@
   <!-- ARP / Devices -->
   <div class="card grid-full">
     <div class="card-header">
+      IP / DHCP Inventar
+      <span class="badge" id="ipdhcp-count">-</span>
+    </div>
+    <div class="card-body">
+      <div class="ipdhcp-summary" id="ipdhcp-summary">
+        <div class="stat-box"><div class="big-num">-</div><div class="big-label">IPs</div></div>
+        <div class="stat-box"><div class="big-num">-</div><div class="big-label">Eintraege</div></div>
+        <div class="stat-box"><div class="big-num">-</div><div class="big-label">DHCP</div></div>
+        <div class="stat-box"><div class="big-num">-</div><div class="big-label">Unraid</div></div>
+      </div>
+      <div class="ipdhcp-actions">
+        <input type="text" class="search-bar" id="ipdhcp-search" placeholder="IP, Name, MAC oder Quelle suchen">
+        <select id="ipdhcp-source" class="select-bar">
+          <option value="">Alle Quellen</option>
+          <option value="OPNsense">OPNsense</option>
+          <option value="Unraid Docker">Unraid Docker</option>
+          <option value="Unraid VM">Unraid VM</option>
+        </select>
+        <button class="tab-btn" type="button" id="ipdhcp-refresh">Aktualisieren</button>
+      </div>
+      <div class="banner" id="ipdhcp-errors" style="display:none"></div>
+      <div class="scroll-y" style="max-height:340px">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>IP</th><th>Namen</th><th>MACs</th><th>Quellen</th><th>Interfaces</th><th>Status</th><th>Details</th></tr></thead>
+            <tbody id="ipdhcp-tbody"><tr><td colspan="7" class="loading">Warte auf Daten...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="ipdhcp-split">
+        <div>
+          <div class="section-label">Neue Geraete</div>
+          <div class="scroll-y" style="max-height:220px">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>First Seen</th><th>Last Seen</th><th>MAC</th><th>Namen</th><th>IPs</th></tr></thead>
+                <tbody id="ipdhcp-history"><tr><td colspan="5" class="loading">...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="section-label">Static Lease anlegen</div>
+          <form id="ipdhcp-lease-form" class="ipdhcp-form">
+            <select id="ipdhcp-lease-pick"><option value="">Manuell ausfuellen</option></select>
+            <input id="ipdhcp-hostname" required placeholder="Hostname">
+            <input id="ipdhcp-ip" required pattern="192\.168\.188\.[0-9]{1,3}" placeholder="192.168.188.x">
+            <input id="ipdhcp-mac" required pattern="[0-9a-fA-F:]{17}" placeholder="aa:bb:cc:dd:ee:ff">
+            <input id="ipdhcp-description" placeholder="Beschreibung">
+            <label class="inline-check"><input id="ipdhcp-apply" type="checkbox" checked> Dnsmasq anwenden</label>
+            <button class="tab-btn active" type="submit">Speichern</button>
+          </form>
+          <div id="ipdhcp-result" class="form-note"></div>
+          <div class="section-label">VMs ohne gefundene IP</div>
+          <div id="ipdhcp-vm-macs" class="chip-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card grid-full">
+    <div class="card-header">
       🖥️ Geräte im Netzwerk
       <span class="badge" id="hosts-count">—</span>
     </div>

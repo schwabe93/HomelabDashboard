@@ -2,6 +2,9 @@ const API = '';
 let sortCol = 'rx_5min', sortDir = -1;
 let clientFilter = '';
 let hostFilter = '';
+let ipdhcpFilter = '';
+let ipdhcpSource = '';
+let ipdhcpData = null;
 let expandedClient = null;
 let currentTrafficPeriod = 'day';
 
@@ -253,6 +256,105 @@ async function refreshHosts() {
   } catch (e) { console.warn('hosts', e); }
 }
 
+function renderChips(values, kind = '') {
+  return `<div class="chip-list">${(values || []).map(v => `<span class="mini-chip ${kind}">${escapeHtml(v)}</span>`).join('')}</div>`;
+}
+
+function ipdhcpVisibleHosts() {
+  const q = ipdhcpFilter.toLowerCase();
+  return (ipdhcpData?.hosts || []).filter(h => {
+    const sourceOk = !ipdhcpSource || (h.sources || []).some(s => s.includes(ipdhcpSource));
+    const queryOk = !q || JSON.stringify(h).toLowerCase().includes(q);
+    return sourceOk && queryOk;
+  });
+}
+
+function renderIpdhcpSummary(data) {
+  const counts = data.counts || {};
+  const opn = counts.opnsense || {};
+  const stats = [
+    [counts.consolidated_ips || 0, 'IPs'],
+    [counts.total_items || 0, 'Eintraege'],
+    [opn.leases || 0, 'DHCP'],
+    [counts.unraid_items || 0, 'Unraid'],
+  ];
+  document.getElementById('ipdhcp-summary').innerHTML = stats.map(([value, label]) =>
+    `<div class="stat-box"><div class="big-num">${escapeHtml(value)}</div><div class="big-label">${escapeHtml(label)}</div></div>`
+  ).join('');
+  document.getElementById('ipdhcp-count').textContent = `${counts.consolidated_ips || 0} IPs`;
+}
+
+function renderIpdhcpHosts() {
+  const tbody = document.getElementById('ipdhcp-tbody');
+  const rows = ipdhcpVisibleHosts();
+  tbody.innerHTML = rows.map(h => `
+    <tr>
+      <td class="mono">${escapeHtml(h.ip)}</td>
+      <td>${renderChips(h.names)}</td>
+      <td>${renderChips(h.macs)}</td>
+      <td>${renderChips(h.sources, 'source')}</td>
+      <td>${renderChips(h.interfaces)}</td>
+      <td>${renderChips(h.statuses)}</td>
+      <td>${renderChips(h.details)}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" class="loading">Keine passenden Eintraege</td></tr>';
+}
+
+function renderIpdhcpHistory() {
+  const tbody = document.getElementById('ipdhcp-history');
+  tbody.innerHTML = (ipdhcpData?.history || []).slice(0, 60).map(h => `
+    <tr>
+      <td>${escapeHtml(h.first_seen)}</td>
+      <td>${escapeHtml(h.last_seen)}</td>
+      <td class="mono">${escapeHtml(h.mac)}</td>
+      <td>${renderChips(h.names)}</td>
+      <td>${renderChips(h.ips)}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="5" class="loading">Keine History</td></tr>';
+}
+
+function renderIpdhcpLeasePicker() {
+  const leases = (ipdhcpData?.items || [])
+    .filter(item => item.type === 'dhcp' && item.mac && item.ip)
+    .sort((a, b) => a.ip.localeCompare(b.ip, undefined, { numeric: true }));
+  const picker = document.getElementById('ipdhcp-lease-pick');
+  picker.innerHTML = '<option value="">Manuell ausfuellen</option>' + leases.map((item, index) => {
+    const label = `${item.ip} - ${item.name || '(kein Name)'} - ${item.mac}`;
+    return `<option value="${index}">${escapeHtml(label)}</option>`;
+  }).join('');
+  picker._leases = leases;
+}
+
+function renderIpdhcpVmMacs() {
+  const rows = (ipdhcpData?.unraid_vm_macs || []).filter(vm => {
+    return !(ipdhcpData?.items || []).some(item => item.type === 'vm' && item.name === vm.name);
+  });
+  document.getElementById('ipdhcp-vm-macs').innerHTML = rows.length
+    ? rows.map(vm => `<span class="mini-chip">${escapeHtml(vm.name)}: ${escapeHtml((vm.macs || []).join(', '))}</span>`).join('')
+    : '<span class="mini-chip">Keine</span>';
+}
+
+async function refreshIpdhcp() {
+  const errors = document.getElementById('ipdhcp-errors');
+  const button = document.getElementById('ipdhcp-refresh');
+  button.disabled = true;
+  try {
+    ipdhcpData = await fetchJSON('/api/ipdhcp/hosts');
+    renderIpdhcpSummary(ipdhcpData);
+    renderIpdhcpHosts();
+    renderIpdhcpHistory();
+    renderIpdhcpLeasePicker();
+    renderIpdhcpVmMacs();
+    errors.style.display = ipdhcpData.errors?.length ? 'flex' : 'none';
+    errors.textContent = (ipdhcpData.errors || []).join(' | ');
+  } catch (e) {
+    errors.style.display = 'flex';
+    errors.textContent = `IP/DHCP konnte nicht geladen werden: ${e.message}`;
+  } finally {
+    button.disabled = false;
+  }
+}
+
 // ── Gateways ───────────────────────────────────────────────────
 async function refreshGateways() {
   try {
@@ -339,9 +441,46 @@ async function refreshCharts() {
 // Boot
 refreshAll();
 refreshCharts();
+refreshIpdhcp();
 setInterval(refreshAll, 30_000);
 setInterval(refreshCharts, 60_000);
+setInterval(refreshIpdhcp, 300_000);
 
 // Search
 document.getElementById('client-search').addEventListener('input', e => { clientFilter = e.target.value; refreshClients(); });
 document.getElementById('host-search').addEventListener('input',   e => { hostFilter   = e.target.value; refreshHosts();   });
+document.getElementById('ipdhcp-search').addEventListener('input', e => { ipdhcpFilter = e.target.value; renderIpdhcpHosts(); });
+document.getElementById('ipdhcp-source').addEventListener('change', e => { ipdhcpSource = e.target.value; renderIpdhcpHosts(); });
+document.getElementById('ipdhcp-refresh').addEventListener('click', refreshIpdhcp);
+document.getElementById('ipdhcp-lease-pick').addEventListener('change', e => {
+  const item = e.target._leases?.[Number(e.target.value)];
+  if (!item) return;
+  document.getElementById('ipdhcp-ip').value = item.ip || '';
+  document.getElementById('ipdhcp-mac').value = item.mac || '';
+  document.getElementById('ipdhcp-hostname').value = item.name && item.name !== '*' ? item.name : '';
+  document.getElementById('ipdhcp-description').value = `Static lease for ${item.name || item.mac}`;
+});
+document.getElementById('ipdhcp-lease-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const result = document.getElementById('ipdhcp-result');
+  result.textContent = 'Speichere...';
+  try {
+    const r = await fetch(API + '/api/ipdhcp/static-lease', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        hostname: document.getElementById('ipdhcp-hostname').value,
+        ip: document.getElementById('ipdhcp-ip').value,
+        mac: document.getElementById('ipdhcp-mac').value,
+        description: document.getElementById('ipdhcp-description').value,
+        apply: document.getElementById('ipdhcp-apply').checked,
+      }),
+    });
+    const body = await r.json();
+    if (!r.ok || !body.ok) throw new Error(body.detail || body.error || 'Speichern fehlgeschlagen');
+    result.textContent = 'Static Lease gespeichert.';
+    await refreshIpdhcp();
+  } catch (err) {
+    result.textContent = err.message;
+  }
+});

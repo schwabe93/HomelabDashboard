@@ -43,3 +43,7 @@ function gauge(value, max = 100) {
   else if (p > 60) color = '#ffa502';
   return `<div class="gauge-bar"><div class="gauge-fill" style="width:${p}%;background:${color}"></div></div>`;
 }
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}

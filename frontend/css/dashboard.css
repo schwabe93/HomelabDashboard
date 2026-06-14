@@ -310,6 +310,105 @@ tr:hover td { background: var(--card2); }
 .search-bar:focus { border-color: var(--accent); }
 .search-bar::placeholder { color: var(--muted); }
 
+.select-bar {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12px;
+  padding: 6px 10px;
+  outline: none;
+}
+
+.ipdhcp-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(90px, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ipdhcp-summary .stat-box {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.ipdhcp-actions {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 170px auto;
+  gap: 8px;
+  align-items: start;
+}
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.mini-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.mini-chip.source {
+  color: var(--accent);
+}
+
+.ipdhcp-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, .8fr);
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.ipdhcp-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.ipdhcp-form input,
+.ipdhcp-form select {
+  width: 100%;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12px;
+  padding: 7px 9px;
+}
+
+.ipdhcp-form select,
+.ipdhcp-form .inline-check,
+.ipdhcp-form button {
+  grid-column: 1 / -1;
+}
+
+.inline-check {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.form-note {
+  min-height: 20px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 /* ── Big number ── */
 .big-num {
   font-size: 30px;
@@ -362,6 +461,10 @@ tr:hover td { background: var(--card2); }
   .big-num { font-size: 24px; }
 
   .traffic-totals { grid-template-columns: 1fr 1fr; }
+  .ipdhcp-summary { grid-template-columns: 1fr 1fr; }
+  .ipdhcp-actions,
+  .ipdhcp-split,
+  .ipdhcp-form { grid-template-columns: 1fr; }
 
   .scroll-y { max-height: 200px; }
 }

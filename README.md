@@ -23,6 +23,7 @@ Self-hosted Monitoring Dashboard für OPNsense — läuft auf Ubuntu Server, zei
 | **Interface Fehler** | Input/Output Errors + Queue Drops |
 | **System Health** | CPU%, RAM, Load Average — 6h Verlauf |
 | **Geräte im Netzwerk** | ARP-Tabelle mit Hersteller-Info + Suche |
+| **IP / DHCP Inventar** | Dnsmasq Leases, Static Hosts, ARP, DNS Overrides und Unraid Docker/VM IPs inkl. Static-Lease-Formular |
 
 ---
 
@@ -82,6 +83,12 @@ OPNSENSE_HOST=192.168.188.160
 OPNSENSE_API_KEY=dein_api_key
 OPNSENSE_API_SECRET=dein_api_secret
 DATABASE_PATH=data/dashboard.db
+IPDHCP_HISTORY_FILE=data/ipdhcp-history.json
+IPDHCP_SUBNET_PREFIX=192.168.188.
+UNRAID_HOST=192.168.188.160
+UNRAID_USER=root
+UNRAID_PASSWORD=
+UNRAID_SSH_MODE=auto
 ```
 
 ### 5. Systemd Service
