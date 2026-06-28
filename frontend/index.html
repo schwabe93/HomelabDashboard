@@ -54,292 +54,325 @@
 </div>
 
 <nav class="app-tabs" aria-label="Dashboard Bereiche">
-  <button class="app-tab active" type="button" data-view-target="dashboard">Dashboard</button>
-  <button class="app-tab" type="button" data-view-target="ip-management">IP Management</button>
-  <button class="app-tab" type="button" data-view-target="starlink">Starlink</button>
+  <button class="app-tab active" type="button" data-view-target="dashboard" aria-current="page">📊 Dashboard</button>
+  <button class="app-tab" type="button" data-view-target="ip-management">🌐 IP Management</button>
+  <button class="app-tab" type="button" data-view-target="starlink">🛰️ Starlink</button>
 </nav>
 
-<!-- ── Grid ── -->
-<div class="grid">
+<!-- ── Views ── -->
+<main class="app-main">
+  <section class="app-view" data-view="dashboard">
+    <header class="page-header">
+      <div>
+        <div class="eyebrow">Live Übersicht</div>
+        <h2>Dashboard</h2>
+        <p>System-, Firewall-, DNS- und Traffic-Status auf einen Blick.</p>
+      </div>
+    </header>
+    <div class="grid">
 
-  <!-- Gateway Status -->
-  <div class="card" data-view="dashboard">
-    <div class="card-header">🔗 Gateway Status</div>
-    <div class="card-body" id="gateways-body">
-      <div class="loading">Warte auf Daten…</div>
-    </div>
-  </div>
 
-  <!-- DNS Stats -->
-  <div class="card" data-view="dashboard">
-    <div class="card-header">🔍 Unbound DNS</div>
-    <div class="card-body">
-      <div class="stat-row">
-        <div class="stat-box">
-          <div class="big-num" id="dns-queries">—</div>
-          <div class="big-label">Anfragen</div>
+        <!-- Gateway Status -->
+        <div class="card" data-view="dashboard">
+          <div class="card-header">🔗 Gateway Status</div>
+          <div class="card-body" id="gateways-body">
+            <div class="loading">Warte auf Daten…</div>
+          </div>
         </div>
-        <div class="stat-box">
-          <div class="big-num" id="dns-cache-pct" style="color:var(--green)">—</div>
-          <div class="big-label">Cache Hit</div>
+
+        <!-- DNS Stats -->
+        <div class="card" data-view="dashboard">
+          <div class="card-header">🔍 Unbound DNS</div>
+          <div class="card-body">
+            <div class="stat-row">
+              <div class="stat-box">
+                <div class="big-num" id="dns-queries">—</div>
+                <div class="big-label">Anfragen</div>
+              </div>
+              <div class="stat-box">
+                <div class="big-num" id="dns-cache-pct" style="color:var(--green)">—</div>
+                <div class="big-label">Cache Hit</div>
+              </div>
+              <div class="stat-box">
+                <div class="big-num" id="dns-avg-ms" style="color:var(--accent)">—</div>
+                <div class="big-label">Ø Latenz</div>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px">
+              <span>Hits: <span id="dns-hits" style="color:var(--green)">—</span></span>
+              <span>Miss: <span id="dns-miss" style="color:var(--red)">—</span></span>
+            </div>
+            <div class="gauge-bar" style="height:6px">
+              <div class="gauge-fill" id="dns-cache-bar" style="width:0%;background:var(--green)"></div>
+            </div>
+          </div>
         </div>
-        <div class="stat-box">
-          <div class="big-num" id="dns-avg-ms" style="color:var(--accent)">—</div>
-          <div class="big-label">Ø Latenz</div>
+
+        <!-- Traffic History -->
+        <div class="card grid-full" data-view="dashboard">
+          <div class="card-header">
+            📊 Download / Upload Statistik
+            <div class="tabs" style="margin:0">
+              <button class="tab-btn active" type="button" data-traffic-period="day">Heute</button>
+              <button class="tab-btn" type="button" data-traffic-period="week">Woche</button>
+              <button class="tab-btn" type="button" data-traffic-period="month">Monat</button>
+              <button class="tab-btn" type="button" data-traffic-period="year">Jahr</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="traffic-totals" id="traffic-totals">
+              <div class="traffic-total-box"><div class="period">Heute</div><div class="rx-val" id="tt-today-rx">—</div><div class="tx-val" id="tt-today-tx">—</div></div>
+              <div class="traffic-total-box"><div class="period">Woche</div><div class="rx-val" id="tt-week-rx">—</div><div class="tx-val" id="tt-week-tx">—</div></div>
+              <div class="traffic-total-box"><div class="period">Monat</div><div class="rx-val" id="tt-month-rx">—</div><div class="tx-val" id="tt-month-tx">—</div></div>
+            </div>
+            <div class="chart-wrap" style="height:200px">
+              <canvas id="chart-traffic"></canvas>
+            </div>
+          </div>
         </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px">
-        <span>Hits: <span id="dns-hits" style="color:var(--green)">—</span></span>
-        <span>Miss: <span id="dns-miss" style="color:var(--red)">—</span></span>
-      </div>
-      <div class="gauge-bar" style="height:6px">
-        <div class="gauge-fill" id="dns-cache-bar" style="width:0%;background:var(--green)"></div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Traffic History -->
-  <div class="card grid-full" data-view="dashboard">
-    <div class="card-header">
-      📊 Download / Upload Statistik
-      <div class="tabs" style="margin:0">
-        <button class="tab-btn active" onclick="setTrafficPeriod('day',this)">Heute</button>
-        <button class="tab-btn" onclick="setTrafficPeriod('week',this)">Woche</button>
-        <button class="tab-btn" onclick="setTrafficPeriod('month',this)">Monat</button>
-        <button class="tab-btn" onclick="setTrafficPeriod('year',this)">Jahr</button>
-      </div>
-    </div>
-    <div class="card-body">
-      <div class="traffic-totals" id="traffic-totals">
-        <div class="traffic-total-box"><div class="period">Heute</div><div class="rx-val" id="tt-today-rx">—</div><div class="tx-val" id="tt-today-tx">—</div></div>
-        <div class="traffic-total-box"><div class="period">Woche</div><div class="rx-val" id="tt-week-rx">—</div><div class="tx-val" id="tt-week-tx">—</div></div>
-        <div class="traffic-total-box"><div class="period">Monat</div><div class="rx-val" id="tt-month-rx">—</div><div class="tx-val" id="tt-month-tx">—</div></div>
-      </div>
-      <div class="chart-wrap" style="height:200px">
-        <canvas id="chart-traffic"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- Interface Traffic -->
-  <div class="card grid-full" data-view="dashboard">
-    <div class="card-header">📡 Interface Traffic <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(letzte 1h)</span></div>
-    <div class="card-body">
-      <div class="iface-grid" id="iface-grid"></div>
-    </div>
-  </div>
-
-  <!-- Interface Errors -->
-  <div class="card" data-view="dashboard">
-    <div class="card-header">⚠️ Interface Fehler</div>
-    <div class="card-body">
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Interface</th><th>Input Err</th><th>Output Err</th><th>Drops</th></tr></thead>
-          <tbody id="iface-errors-tbody"><tr><td colspan="4" class="loading">…</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- Firewall States -->
-  <div class="card" data-view="dashboard">
-    <div class="card-header">🔥 Firewall States</div>
-    <div class="card-body">
-      <div class="stat-row">
-        <div class="stat-box">
-          <div class="big-num" id="fw-states-count">—</div>
-          <div class="big-label">Aktive Verbindungen</div>
+        <!-- Interface Traffic -->
+        <div class="card grid-full" data-view="dashboard">
+          <div class="card-header">📡 Interface Traffic <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(letzte 1h)</span></div>
+          <div class="card-body">
+            <div class="iface-grid" id="iface-grid"></div>
+          </div>
         </div>
-      </div>
-      <div class="section-label">Top Quell-IPs</div>
-      <div class="scroll-y" style="max-height:180px">
-        <div class="table-wrap">
-          <table><thead><tr><th>IP</th><th>Verbindungen</th></tr></thead>
-          <tbody id="fw-top-tbody"></tbody></table>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Top Blocked IPs -->
-  <div class="card" data-view="dashboard">
-    <div class="card-header">🚫 Top Blocked IPs <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(1h)</span></div>
-    <div class="card-body">
-      <div class="scroll-y" style="max-height:260px">
-        <div class="table-wrap">
-          <table><thead><tr><th>Quell-IP</th><th>Geblockt</th><th>Proto</th><th>Port</th></tr></thead>
-          <tbody id="blocked-tbody"><tr><td colspan="4" class="loading">…</td></tr></tbody></table>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- System Health -->
-  <div class="card" data-view="dashboard">
-    <div class="card-header">💻 System Health <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(6h)</span></div>
-    <div class="card-body">
-      <div class="chart-wrap" style="height:180px"><canvas id="chart-system"></canvas></div>
-    </div>
-  </div>
-
-  <!-- Per-Client Bandwidth -->
-  <div class="card grid-full" data-view="dashboard">
-    <div class="card-header">
-      👥 Clients — Bandwidth
-      <span class="badge" id="clients-count"></span>
-    </div>
-    <div class="card-body">
-      <div class="banner" id="netflow-banner" style="display:none">
-        ⚠️&nbsp;<span>NetFlow nicht aktiv → OPNsense: <strong>Reporting → NetFlow</strong> → LAN auswählen, Collect aktivieren → Apply</span>
-      </div>
-      <input type="text" class="search-bar" id="client-search" placeholder="🔍  IP oder Gerätename suchen…">
-      <div class="scroll-y" style="max-height:320px">
-        <div class="table-wrap">
-          <table id="clients-table">
-            <thead><tr>
-              <th data-sort="display" onclick="setSortCol('display')">Gerät</th>
-              <th data-sort="ip" onclick="setSortCol('ip')">IP</th>
-              <th>MAC</th>
-              <th class="sorted" data-sort="rx_5min" onclick="setSortCol('rx_5min')">▼ DL 5min</th>
-              <th data-sort="tx_5min" onclick="setSortCol('tx_5min')">▲ UL 5min</th>
-              <th data-sort="rx_today" onclick="setSortCol('rx_today')">▼ DL Heute</th>
-              <th data-sort="tx_today" onclick="setSortCol('tx_today')">▲ UL Heute</th>
-            </tr></thead>
-            <tbody id="clients-tbody"><tr><td colspan="7" class="loading">Warte auf NetFlow-Daten…</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ARP / Devices -->
-  <div class="card grid-full view-hidden" data-view="ip-management">
-    <div class="card-header">
-      IP / DHCP Inventar
-      <span class="badge" id="ipdhcp-count">-</span>
-    </div>
-    <div class="card-body">
-      <div class="ipdhcp-summary" id="ipdhcp-summary">
-        <div class="stat-box"><div class="big-num">-</div><div class="big-label">IPs</div></div>
-        <div class="stat-box"><div class="big-num">-</div><div class="big-label">Eintraege</div></div>
-        <div class="stat-box"><div class="big-num">-</div><div class="big-label">DHCP</div></div>
-        <div class="stat-box"><div class="big-num">-</div><div class="big-label">Unraid</div></div>
-      </div>
-      <div class="ipdhcp-actions">
-        <input type="text" class="search-bar" id="ipdhcp-search" placeholder="IP, Name, MAC oder Quelle suchen">
-        <select id="ipdhcp-source" class="select-bar">
-          <option value="">Alle Quellen</option>
-          <option value="OPNsense">OPNsense</option>
-          <option value="Unraid Docker">Unraid Docker</option>
-          <option value="Unraid VM">Unraid VM</option>
-        </select>
-        <button class="tab-btn" type="button" id="ipdhcp-refresh">Aktualisieren</button>
-      </div>
-      <div class="banner" id="ipdhcp-errors" style="display:none"></div>
-      <div class="scroll-y" style="max-height:340px">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>IP</th><th>Namen</th><th>MACs</th><th>Quellen</th><th>Interfaces</th><th>Status</th><th>Details</th></tr></thead>
-            <tbody id="ipdhcp-tbody"><tr><td colspan="7" class="loading">Warte auf Daten...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-      <div class="ipdhcp-split">
-        <div>
-          <div class="section-label">Neue Geraete</div>
-          <div class="scroll-y" style="max-height:220px">
+        <!-- Interface Errors -->
+        <div class="card" data-view="dashboard">
+          <div class="card-header">⚠️ Interface Fehler</div>
+          <div class="card-body">
             <div class="table-wrap">
               <table>
-                <thead><tr><th>First Seen</th><th>Last Seen</th><th>MAC</th><th>Namen</th><th>IPs</th></tr></thead>
-                <tbody id="ipdhcp-history"><tr><td colspan="5" class="loading">...</td></tr></tbody>
+                <thead><tr><th>Interface</th><th>Input Err</th><th>Output Err</th><th>Drops</th></tr></thead>
+                <tbody id="iface-errors-tbody"><tr><td colspan="4" class="loading">…</td></tr></tbody>
               </table>
             </div>
           </div>
         </div>
-        <div>
-          <div class="section-label">Static Lease anlegen</div>
-          <form id="ipdhcp-lease-form" class="ipdhcp-form">
-            <select id="ipdhcp-lease-pick"><option value="">Manuell ausfuellen</option></select>
-            <input id="ipdhcp-hostname" required placeholder="Hostname">
-            <input id="ipdhcp-ip" required pattern="192\.168\.188\.[0-9]{1,3}" placeholder="192.168.188.x">
-            <input id="ipdhcp-mac" required pattern="[0-9a-fA-F:]{17}" placeholder="aa:bb:cc:dd:ee:ff">
-            <input id="ipdhcp-description" placeholder="Beschreibung">
-            <label class="inline-check"><input id="ipdhcp-apply" type="checkbox" checked> Dnsmasq anwenden</label>
-            <button class="tab-btn active" type="submit">Speichern</button>
-          </form>
-          <div id="ipdhcp-result" class="form-note"></div>
-          <div class="section-label">VMs ohne gefundene IP</div>
-          <div id="ipdhcp-vm-macs" class="chip-list"></div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <div class="card grid-full view-hidden" data-view="starlink">
-    <div class="card-header">
-      Starlink
-      <span class="badge" id="starlink-state">-</span>
-    </div>
-    <div class="card-body">
-      <div class="starlink-hero">
-        <div>
-          <div class="starlink-title">Dish Status</div>
-          <div class="starlink-subtitle" id="starlink-host">192.168.100.1</div>
-        </div>
-        <button class="tab-btn" type="button" id="starlink-refresh">Aktualisieren</button>
-      </div>
-      <div class="ipdhcp-summary" id="starlink-summary">
-        <div class="stat-box"><div class="big-num">-</div><div class="big-label">Ping</div></div>
-        <div class="stat-box"><div class="big-num">-</div><div class="big-label">gRPC</div></div>
-        <div class="stat-box"><div class="big-num">-</div><div class="big-label">Latenz</div></div>
-        <div class="stat-box"><div class="big-num">-</div><div class="big-label">Uptime</div></div>
-      </div>
-      <div class="starlink-grid">
-        <div>
-          <div class="section-label">Verbindung</div>
-          <div class="table-wrap">
-            <table>
-              <tbody id="starlink-connection">
-                <tr><td colspan="2" class="loading">Warte auf Daten...</td></tr>
-              </tbody>
-            </table>
+        <!-- Firewall States -->
+        <div class="card" data-view="dashboard">
+          <div class="card-header">🔥 Firewall States</div>
+          <div class="card-body">
+            <div class="stat-row">
+              <div class="stat-box">
+                <div class="big-num" id="fw-states-count">—</div>
+                <div class="big-label">Aktive Verbindungen</div>
+              </div>
+            </div>
+            <div class="section-label">Top Quell-IPs</div>
+            <div class="scroll-y" style="max-height:180px">
+              <div class="table-wrap">
+                <table><thead><tr><th>IP</th><th>Verbindungen</th></tr></thead>
+                <tbody id="fw-top-tbody"></tbody></table>
+              </div>
+            </div>
           </div>
         </div>
-        <div>
-          <div class="section-label">Dish Werte</div>
-          <div class="table-wrap">
-            <table>
-              <tbody id="starlink-metrics">
-                <tr><td colspan="2" class="loading">Warte auf Daten...</td></tr>
-              </tbody>
-            </table>
+
+        <!-- Top Blocked IPs -->
+        <div class="card" data-view="dashboard">
+          <div class="card-header">🚫 Top Blocked IPs <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(1h)</span></div>
+          <div class="card-body">
+            <div class="scroll-y" style="max-height:260px">
+              <div class="table-wrap">
+                <table><thead><tr><th>Quell-IP</th><th>Geblockt</th><th>Proto</th><th>Port</th></tr></thead>
+                <tbody id="blocked-tbody"><tr><td colspan="4" class="loading">…</td></tr></tbody></table>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="banner" id="starlink-errors" style="display:none"></div>
-      <div class="section-label">Rohdaten</div>
-      <pre class="raw-block" id="starlink-raw">Noch keine Daten</pre>
-    </div>
-  </div>
 
-  <div class="card grid-full" data-view="dashboard">
-    <div class="card-header">
-      🖥️ Geräte im Netzwerk
-      <span class="badge" id="hosts-count">—</span>
-    </div>
-    <div class="card-body">
-      <input type="text" class="search-bar" id="host-search" placeholder="🔍  IP, Hersteller oder Hostname suchen…">
-      <div class="scroll-y" style="max-height:280px">
-        <div class="table-wrap">
-          <table><thead><tr><th>IP</th><th>MAC</th><th>Hersteller / Hostname</th><th>Interface</th></tr></thead>
-          <tbody id="hosts-tbody"><tr><td colspan="4" class="loading">…</td></tr></tbody></table>
+        <!-- System Health -->
+        <div class="card" data-view="dashboard">
+          <div class="card-header">💻 System Health <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(6h)</span></div>
+          <div class="card-body">
+            <div class="chart-wrap" style="height:180px"><canvas id="chart-system"></canvas></div>
+          </div>
         </div>
-      </div>
-    </div>
-  </div>
 
-</div><!-- /grid -->
+        <!-- Per-Client Bandwidth -->
+        <div class="card grid-full" data-view="dashboard">
+          <div class="card-header">
+            👥 Clients — Bandwidth
+            <span class="badge" id="clients-count"></span>
+          </div>
+          <div class="card-body">
+            <div class="banner" id="netflow-banner" style="display:none">
+              ⚠️&nbsp;<span>NetFlow nicht aktiv → OPNsense: <strong>Reporting → NetFlow</strong> → LAN auswählen, Collect aktivieren → Apply</span>
+            </div>
+            <input type="text" class="search-bar" id="client-search" placeholder="🔍  IP oder Gerätename suchen…">
+            <div class="scroll-y" style="max-height:320px">
+              <div class="table-wrap">
+                <table id="clients-table">
+                  <thead><tr>
+                    <th data-sort="display" onclick="setSortCol('display')">Gerät</th>
+                    <th data-sort="ip" onclick="setSortCol('ip')">IP</th>
+                    <th>MAC</th>
+                    <th class="sorted" data-sort="rx_5min" onclick="setSortCol('rx_5min')">▼ DL 5min</th>
+                    <th data-sort="tx_5min" onclick="setSortCol('tx_5min')">▲ UL 5min</th>
+                    <th data-sort="rx_today" onclick="setSortCol('rx_today')">▼ DL Heute</th>
+                    <th data-sort="tx_today" onclick="setSortCol('tx_today')">▲ UL Heute</th>
+                  </tr></thead>
+                  <tbody id="clients-tbody"><tr><td colspan="7" class="loading">Warte auf NetFlow-Daten…</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card grid-full" data-view="dashboard">
+          <div class="card-header">
+            🖥️ Geräte im Netzwerk
+            <span class="badge" id="hosts-count">—</span>
+          </div>
+          <div class="card-body">
+            <input type="text" class="search-bar" id="host-search" placeholder="🔍  IP, Hersteller oder Hostname suchen…">
+            <div class="scroll-y" style="max-height:280px">
+              <div class="table-wrap">
+                <table><thead><tr><th>IP</th><th>MAC</th><th>Hersteller / Hostname</th><th>Interface</th></tr></thead>
+                <tbody id="hosts-tbody"><tr><td colspan="4" class="loading">…</td></tr></tbody></table>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+  </section>
+  <section class="app-view" data-view="ip-management" hidden>
+    <header class="page-header">
+      <div>
+        <div class="eyebrow">Network Inventory</div>
+        <h2>IP Management</h2>
+        <p>DHCP-Leases, ARP/DNS/Unraid-Inventar und Static-Lease-Verwaltung als eigene Arbeitsfläche.</p>
+      </div>
+    </header>
+    <div class="grid">
+
+        <!-- ARP / Devices -->
+        <div class="card grid-full" data-view="ip-management">
+          <div class="card-header">
+            IP / DHCP Inventar
+            <span class="badge" id="ipdhcp-count">-</span>
+          </div>
+          <div class="card-body">
+            <div class="ipdhcp-summary" id="ipdhcp-summary">
+              <div class="stat-box"><div class="big-num">-</div><div class="big-label">IPs</div></div>
+              <div class="stat-box"><div class="big-num">-</div><div class="big-label">Eintraege</div></div>
+              <div class="stat-box"><div class="big-num">-</div><div class="big-label">DHCP</div></div>
+              <div class="stat-box"><div class="big-num">-</div><div class="big-label">Unraid</div></div>
+            </div>
+            <div class="ipdhcp-actions">
+              <input type="text" class="search-bar" id="ipdhcp-search" placeholder="IP, Name, MAC oder Quelle suchen">
+              <select id="ipdhcp-source" class="select-bar">
+                <option value="">Alle Quellen</option>
+                <option value="OPNsense">OPNsense</option>
+                <option value="Unraid Docker">Unraid Docker</option>
+                <option value="Unraid VM">Unraid VM</option>
+              </select>
+              <button class="tab-btn" type="button" id="ipdhcp-refresh">Aktualisieren</button>
+            </div>
+            <div class="banner" id="ipdhcp-errors" style="display:none"></div>
+            <div class="scroll-y" style="max-height:340px">
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>IP</th><th>Namen</th><th>MACs</th><th>Quellen</th><th>Interfaces</th><th>Status</th><th>Details</th></tr></thead>
+                  <tbody id="ipdhcp-tbody"><tr><td colspan="7" class="loading">Warte auf Daten...</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="ipdhcp-split">
+              <div>
+                <div class="section-label">Neue Geraete</div>
+                <div class="scroll-y" style="max-height:220px">
+                  <div class="table-wrap">
+                    <table>
+                      <thead><tr><th>First Seen</th><th>Last Seen</th><th>MAC</th><th>Namen</th><th>IPs</th></tr></thead>
+                      <tbody id="ipdhcp-history"><tr><td colspan="5" class="loading">...</td></tr></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div class="section-label">Static Lease anlegen</div>
+                <form id="ipdhcp-lease-form" class="ipdhcp-form">
+                  <select id="ipdhcp-lease-pick"><option value="">Manuell ausfuellen</option></select>
+                  <input id="ipdhcp-hostname" required placeholder="Hostname">
+                  <input id="ipdhcp-ip" required pattern="192\.168\.188\.[0-9]{1,3}" placeholder="192.168.188.x">
+                  <input id="ipdhcp-mac" required pattern="[0-9a-fA-F:]{17}" placeholder="aa:bb:cc:dd:ee:ff">
+                  <input id="ipdhcp-description" placeholder="Beschreibung">
+                  <label class="inline-check"><input id="ipdhcp-apply" type="checkbox" checked> Dnsmasq anwenden</label>
+                  <button class="tab-btn active" type="submit">Speichern</button>
+                </form>
+                <div id="ipdhcp-result" class="form-note"></div>
+                <div class="section-label">VMs ohne gefundene IP</div>
+                <div id="ipdhcp-vm-macs" class="chip-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+  </section>
+  <section class="app-view" data-view="starlink" hidden>
+    <header class="page-header">
+      <div>
+        <div class="eyebrow">WAN Uplink</div>
+        <h2>Starlink</h2>
+        <p>Dish-Erreichbarkeit, gRPC-Status, Latenz und Rohdaten auf einer separaten Seite.</p>
+      </div>
+    </header>
+    <div class="grid">
+
+        <div class="card grid-full" data-view="starlink">
+          <div class="card-header">
+            Starlink
+            <span class="badge" id="starlink-state">-</span>
+          </div>
+          <div class="card-body">
+            <div class="starlink-hero">
+              <div>
+                <div class="starlink-title">Dish Status</div>
+                <div class="starlink-subtitle" id="starlink-host">192.168.100.1</div>
+              </div>
+              <button class="tab-btn" type="button" id="starlink-refresh">Aktualisieren</button>
+            </div>
+            <div class="ipdhcp-summary" id="starlink-summary">
+              <div class="stat-box"><div class="big-num">-</div><div class="big-label">Ping</div></div>
+              <div class="stat-box"><div class="big-num">-</div><div class="big-label">gRPC</div></div>
+              <div class="stat-box"><div class="big-num">-</div><div class="big-label">Latenz</div></div>
+              <div class="stat-box"><div class="big-num">-</div><div class="big-label">Uptime</div></div>
+            </div>
+            <div class="starlink-grid">
+              <div>
+                <div class="section-label">Verbindung</div>
+                <div class="table-wrap">
+                  <table>
+                    <tbody id="starlink-connection">
+                      <tr><td colspan="2" class="loading">Warte auf Daten...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div>
+                <div class="section-label">Dish Werte</div>
+                <div class="table-wrap">
+                  <table>
+                    <tbody id="starlink-metrics">
+                      <tr><td colspan="2" class="loading">Warte auf Daten...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div class="banner" id="starlink-errors" style="display:none"></div>
+            <div class="section-label">Rohdaten</div>
+            <pre class="raw-block" id="starlink-raw">Noch keine Daten</pre>
+          </div>
+        </div>
+    </div>
+  </section>
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="js/utils.js"></script>

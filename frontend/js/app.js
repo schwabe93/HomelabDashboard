@@ -9,6 +9,16 @@ let starlinkData = null;
 let expandedClient = null;
 let currentTrafficPeriod = 'day';
 let currentView = 'dashboard';
+let ipdhcpLoaded = false;
+let starlinkLoaded = false;
+
+const DEFAULT_VIEW = 'dashboard';
+const VALID_VIEWS = new Set(['dashboard', 'ip-management', 'starlink']);
+const VIEW_TITLES = {
+  dashboard: 'Dashboard',
+  'ip-management': 'IP Management',
+  starlink: 'Starlink',
+};
 
 async function fetchJSON(url) {
   const r = await fetch(API + url);
@@ -16,12 +26,46 @@ async function fetchJSON(url) {
   return r.json();
 }
 
+function getViewFromHash() {
+  const raw = window.location.hash.replace(/^#\/?/, '');
+  return VALID_VIEWS.has(raw) ? raw : DEFAULT_VIEW;
+}
+
+function navigateTo(view) {
+  const target = VALID_VIEWS.has(view) ? view : DEFAULT_VIEW;
+  const nextHash = `#/${target}`;
+  if (window.location.hash !== nextHash) window.location.hash = nextHash;
+  else setView(target);
+}
+
 function setView(view) {
-  currentView = view;
-  document.querySelectorAll('.app-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.viewTarget === view));
-  document.querySelectorAll('[data-view]').forEach(card => card.classList.toggle('view-hidden', card.dataset.view !== view));
-  if (view === 'ip-management' && !ipdhcpData) refreshIpdhcp();
-  if (view === 'starlink' && !starlinkData) refreshStarlink();
+  const target = VALID_VIEWS.has(view) ? view : DEFAULT_VIEW;
+  currentView = target;
+
+  document.querySelectorAll('.app-tab').forEach(btn => {
+    const active = btn.dataset.viewTarget === target;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-current', active ? 'page' : 'false');
+  });
+
+  document.querySelectorAll('[data-view]').forEach(section => {
+    const active = section.dataset.view === target;
+    section.hidden = !active;
+    section.classList.toggle('is-active', active);
+  });
+
+  document.body.dataset.currentView = target;
+  document.title = `${VIEW_TITLES[target] || 'Dashboard'} · Homelab Dashboard`;
+  window.scrollTo({ top: 0, behavior: 'auto' });
+
+  if (target === 'ip-management' && !ipdhcpLoaded) {
+    ipdhcpLoaded = true;
+    refreshIpdhcp();
+  }
+  if (target === 'starlink' && !starlinkLoaded) {
+    starlinkLoaded = true;
+    refreshStarlink();
+  }
 }
 
 function yesNo(value) {
@@ -178,8 +222,9 @@ async function refreshTrafficChart(period) {
 
 function setTrafficPeriod(period, btn) {
   currentTrafficPeriod = period;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  const group = btn?.closest('.tabs');
+  group?.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn?.classList.add('active');
   refreshTrafficChart(period);
 }
 
@@ -533,17 +578,18 @@ async function refreshCharts() {
 }
 
 // Boot
+window.addEventListener('hashchange', () => setView(getViewFromHash()));
+document.querySelectorAll('.app-tab').forEach(btn => btn.addEventListener('click', () => navigateTo(btn.dataset.viewTarget)));
+document.querySelectorAll('[data-traffic-period]').forEach(btn => btn.addEventListener('click', () => setTrafficPeriod(btn.dataset.trafficPeriod, btn)));
+setView(getViewFromHash());
 refreshAll();
 refreshCharts();
-refreshIpdhcp();
-refreshStarlink();
 setInterval(refreshAll, 30_000);
 setInterval(refreshCharts, 60_000);
-setInterval(refreshIpdhcp, 300_000);
-setInterval(refreshStarlink, 60_000);
+setInterval(() => { if (ipdhcpLoaded) refreshIpdhcp(); }, 300_000);
+setInterval(() => { if (starlinkLoaded) refreshStarlink(); }, 60_000);
 
 // Search
-document.querySelectorAll('.app-tab').forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.viewTarget)));
 document.getElementById('client-search').addEventListener('input', e => { clientFilter = e.target.value; refreshClients(); });
 document.getElementById('host-search').addEventListener('input',   e => { hostFilter   = e.target.value; refreshHosts();   });
 document.getElementById('ipdhcp-search').addEventListener('input', e => { ipdhcpFilter = e.target.value; renderIpdhcpHosts(); });
