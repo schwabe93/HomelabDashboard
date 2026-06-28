@@ -1,0 +1,85 @@
+/* ── Light theme overrides ─────────────────────────────────────
+   Applied when <body> has class "light-theme".
+   All variables defined in :root (dark theme) are overridden here. */
+body.light-theme {
+  --bg:       #f1f5f9;
+  --bg2:      #e2e8f0;
+  --card:     rgba(255, 255, 255, .92);
+  --card2:    rgba(241, 245, 249, .90);
+  --border:   rgba(100, 116, 139, .22);
+  --text:     #0f172a;
+  --muted:    #64748b;
+  --accent:   #0284c7;
+  --accent2:  #6366f1;
+  --green:    #16a34a;
+  --red:      #dc2626;
+  --yellow:   #d97706;
+  --purple:   #7c3aed;
+  --orange:   #ea580c;
+  --radius:   16px;
+  --shadow:   0 18px 60px rgba(0, 0, 0, .08);
+}
+
+/* Body background uses lighter gradient in light theme */
+body.light-theme {
+  background:
+    radial-gradient(circle at 16% -10%, rgba(2, 132, 199, .10), transparent 30%),
+    radial-gradient(circle at 88% 0%, rgba(99, 102, 241, .08), transparent 28%),
+    linear-gradient(135deg, var(--bg), var(--bg2) 58%, #e2e8f0);
+}
+
+/* Header lighter */
+body.light-theme #header {
+  background: rgba(241, 245, 249, .85);
+}
+
+body.light-theme .app-tabs {
+  background: rgba(241, 245, 249, .80);
+}
+
+/* Tabs */
+body.light-theme .app-tab {
+  background: rgba(255, 255, 255, .70);
+}
+
+/* Cards get a softer light surface */
+body.light-theme .card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .95), rgba(248, 250, 252, .92));
+}
+
+/* Table cells adjust text color */
+body.light-theme th { color: var(--muted); }
+
+/* Mono / code-ish elements keep readable contrast */
+body.light-theme .mono { color: #1e293b; }
+
+/* Loading & muted placeholders stay subtle */
+body.light-theme .loading { color: var(--muted); }
+
+/* Page header gradient lightened */
+body.light-theme .page-header {
+  background: linear-gradient(135deg, rgba(2, 132, 199, .10), rgba(255, 255, 255, .80) 46%, rgba(99, 102, 241, .08));
+}
+
+/* Gauge / chart backgrounds remain readable */
+body.light-theme .gauge-bar { background: rgba(100, 116, 139, .20); }
+
+/* Theme toggle button styling */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: 4px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--card2);
+  color: var(--text);
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease;
+  flex-shrink: 0;
+}
+.theme-toggle:hover { border-color: var(--accent); transform: translateY(-1px); }
+.theme-toggle:focus { outline: 2px solid var(--accent); outline-offset: 1px; }

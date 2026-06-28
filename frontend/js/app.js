@@ -11,13 +11,23 @@ let currentTrafficPeriod = 'day';
 let currentView = 'dashboard';
 let ipdhcpLoaded = false;
 let starlinkLoaded = false;
+let trendsLoaded = false;
+let dockerLoaded = false;
+let proxmoxLoaded = false;
+let uptimeKumaLoaded = false;
+let networkLoaded = false;
 
 const DEFAULT_VIEW = 'dashboard';
-const VALID_VIEWS = new Set(['dashboard', 'ip-management', 'starlink']);
+const VALID_VIEWS = new Set(['dashboard', 'ip-management', 'starlink', 'trends', 'network', 'docker', 'proxmox', 'uptime-kuma']);
 const VIEW_TITLES = {
   dashboard: 'Dashboard',
   'ip-management': 'IP Management',
   starlink: 'Starlink',
+  trends: 'Trends',
+  network: 'Netzwerk',
+  docker: 'Docker',
+  proxmox: 'Proxmox',
+  'uptime-kuma': 'Uptime Kuma',
 };
 
 async function fetchJSON(url) {
@@ -65,6 +75,26 @@ function setView(view) {
   if (target === 'starlink' && !starlinkLoaded) {
     starlinkLoaded = true;
     refreshStarlink();
+  }
+  if (target === 'trends' && !trendsLoaded) {
+    trendsLoaded = true;
+    if (window.initTrendsView) initTrendsView();
+  }
+  if (target === 'network' && !networkLoaded) {
+    networkLoaded = true;
+    if (window.initNetworkView) initNetworkView();
+  }
+  if (target === 'docker' && !dockerLoaded) {
+    dockerLoaded = true;
+    if (window.DockerStatus) DockerStatus.init();
+  }
+  if (target === 'proxmox' && !proxmoxLoaded) {
+    proxmoxLoaded = true;
+    if (window.Proxmox) Proxmox.refresh();
+  }
+  if (target === 'uptime-kuma' && !uptimeKumaLoaded) {
+    uptimeKumaLoaded = true;
+    if (window.UptimeKuma) UptimeKuma.refresh();
   }
 }
 

@@ -7,7 +7,11 @@ from database import init_db
 from scheduler import start_scheduler, stop_scheduler
 from collectors import system_stats, interface_traffic, firewall_states, arp_hosts
 from collectors.opnsense_client import close_client
-from routers import system, interfaces, clients, firewall, hosts, gateways, dns, wan, traffic, ipdhcp, starlink
+from routers import (
+    system, interfaces, clients, firewall, hosts, gateways, dns, wan, traffic,
+    ipdhcp, starlink, trends, starlink_outages, wol, nat, vpn, speedtest,
+    wan_failover, device_labels, docker_status, proxmox, uptime_kuma,
+)
 
 
 @asynccontextmanager
@@ -40,5 +44,17 @@ app.include_router(wan.router,        prefix="/api")
 app.include_router(traffic.router,    prefix="/api")
 app.include_router(ipdhcp.router,     prefix="/api")
 app.include_router(starlink.router,   prefix="/api")
+
+app.include_router(trends.router,          prefix="/api")
+app.include_router(starlink_outages.router, prefix="/api")
+app.include_router(wol.router,             prefix="/api")
+app.include_router(nat.router,             prefix="/api")
+app.include_router(vpn.router,              prefix="/api")
+app.include_router(speedtest.router,       prefix="/api")
+app.include_router(wan_failover.router,    prefix="/api")
+app.include_router(device_labels.router,   prefix="/api")
+app.include_router(docker_status.router,   prefix="/api")
+app.include_router(proxmox.router,          prefix="/api")
+app.include_router(uptime_kuma.router,     prefix="/api")
 
 app.mount("/", StaticFiles(directory="../frontend", html=True), name="frontend")

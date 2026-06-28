@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Homelab Dashboard</title>
   <link rel="stylesheet" href="css/dashboard.css">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/theme-light.css">
 </head>
 <body>
 
@@ -57,6 +59,11 @@
   <button class="app-tab active" type="button" data-view-target="dashboard" aria-current="page">📊 Dashboard</button>
   <button class="app-tab" type="button" data-view-target="ip-management">🌐 IP Management</button>
   <button class="app-tab" type="button" data-view-target="starlink">🛰️ Starlink</button>
+  <button class="app-tab" type="button" data-view-target="trends">📈 Trends</button>
+  <button class="app-tab" type="button" data-view-target="network">🌐 Netzwerk</button>
+  <button class="app-tab" type="button" data-view-target="docker">🐳 Docker</button>
+  <button class="app-tab" type="button" data-view-target="proxmox">💻 Proxmox</button>
+  <button class="app-tab" type="button" data-view-target="uptime-kuma">📡 Uptime Kuma</button>
 </nav>
 
 <!-- ── Views ── -->
@@ -411,11 +418,179 @@
         </div>
     </div>
   </section>
+
+<!-- ── Trends View ── -->
+<section class="app-view" data-view="trends" hidden>
+  <header class="page-header">
+    <div>
+      <div class="eyebrow">Langzeit-Analyse</div>
+      <h2>Trends</h2>
+      <p>System-, Traffic- und DNS-Verläufe über 7 Tage, 30 Tage oder 1 Jahr.</p>
+    </div>
+  </header>
+  <div class="grid">
+    <div class="card grid-full" data-view="trends">
+      <div class="card-header">
+        📈 Trends
+        <div class="tabs" style="margin:0">
+          <button class="tab-btn active" type="button" data-trend-period="7d">7 Tage</button>
+          <button class="tab-btn" type="button" data-trend-period="30d">30 Tage</button>
+          <button class="tab-btn" type="button" data-trend-period="1yr">1 Jahr</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="section-label">System Health</div>
+        <div class="chart-wrap" style="height:220px;margin-bottom:14px"><canvas id="chart-trend-system"></canvas></div>
+        <div class="section-label">Traffic</div>
+        <div class="chart-wrap" style="height:220px;margin-bottom:14px"><canvas id="chart-trend-traffic"></canvas></div>
+        <div class="section-label">Zusammenfassung</div>
+        <div class="table-wrap"><table id="trend-summary-table"><thead><tr><th>Metrik</th><th>Min</th><th>Ø</th><th>Max</th></tr></thead><tbody><tr><td colspan="4" class="loading">Warte auf Daten…</td></tr></tbody></table></div>
+        <div class="section-label" style="margin-top:14px">Monatsreport</div>
+        <input type="month" id="trend-report-month" class="select-bar" style="margin-bottom:8px">
+        <div id="trend-report"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Network View ── -->
+<section class="app-view" data-view="network" hidden>
+  <header class="page-header">
+    <div>
+      <div class="eyebrow">Netzwerk-Tools</div>
+      <h2>Netzwerk</h2>
+      <p>Wake-on-LAN, Port-Forwarding, VPN-Status, Speedtest und WAN-Failover-Visualisierung.</p>
+    </div>
+  </header>
+  <div class="grid">
+    <div class="card" data-view="network">
+      <div class="card-header">⚡ Wake-on-LAN</div>
+      <div class="card-body">
+        <div class="ipdhcp-actions">
+          <input type="text" class="search-bar" id="wol-mac-input" placeholder="aa:bb:cc:dd:ee:ff" style="grid-column:1/-1">
+          <button class="tab-btn active" type="button" id="wol-send-btn">Magic Packet senden</button>
+        </div>
+        <div id="wol-result" class="form-note"></div>
+        <div class="section-label">Letzte Aufweckversuche</div>
+        <div class="scroll-y" style="max-height:200px"><div class="table-wrap"><table><thead><tr><th>Zeit</th><th>MAC</th><th>Host</th><th>Status</th></tr></thead><tbody id="wol-recent-tbody"><tr><td colspan="4" class="loading">…</td></tr></tbody></table></div></div>
+      </div>
+    </div>
+    <div class="card" data-view="network">
+      <div class="card-header">🔀 Port Forwarding</div>
+      <div class="card-body">
+        <input type="text" class="search-bar" id="nat-search" placeholder="Port, Ziel, Beschreibung suchen…">
+        <div class="scroll-y" style="max-height:300px"><div class="table-wrap"><table><thead><tr><th>Proto</th><th>Quelle</th><th>Ziel</th><th>Port</th><th>Status</th><th>Beschreibung</th></tr></thead><tbody id="nat-tbody"><tr><td colspan="6" class="loading">…</td></tr></tbody></table></div></div>
+      </div>
+    </div>
+    <div class="card" data-view="network">
+      <div class="card-header">🔒 VPN Status</div>
+      <div class="card-body">
+        <div class="section-label">WireGuard</div>
+        <div id="vpn-wireguard"><div class="loading">Lade…</div></div>
+        <div class="section-label">OpenVPN</div>
+        <div id="vpn-openvpn"><div class="loading">Lade…</div></div>
+      </div>
+    </div>
+    <div class="card" data-view="network">
+      <div class="card-header">📊 Speedtest</div>
+      <div class="card-body">
+        <button class="tab-btn active" type="button" id="speedtest-run-btn">▶ Starten</button>
+        <div id="speedtest-result" class="form-note"></div>
+        <div class="chart-wrap" style="height:160px;margin-top:10px"><canvas id="chart-speedtest"></canvas></div>
+      </div>
+    </div>
+    <div class="card grid-full" data-view="network">
+      <div class="card-header">🌐 WAN Failover</div>
+      <div class="card-body">
+        <div id="wan-failover-display"></div>
+        <div class="section-label">Failover-Verlauf</div>
+        <div class="chart-wrap" style="height:180px;margin-top:8px"><canvas id="chart-wan-failover"></canvas></div>
+        <div class="section-label">Ereignisse</div>
+        <div class="scroll-y" style="max-height:200px"><div class="table-wrap"><table><thead><tr><th>Zeit</th><th>Von</th><th>Nach</th></tr></thead><tbody id="wan-failover-events"><tr><td colspan="3" class="loading">…</td></tr></tbody></table></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Docker View ── -->
+<section class="app-view" data-view="docker" hidden>
+  <header class="page-header">
+    <div>
+      <div class="eyebrow">Unraid Container</div>
+      <h2>Docker Status</h2>
+      <p>Container-Übersicht von Unraid mit CPU-, Speicher- und Health-Status.</p>
+    </div>
+  </header>
+  <div class="grid">
+    <div class="card grid-full" data-view="docker">
+      <div class="card-header">🐳 Docker Container <span class="badge" id="docker-count">—</span> <button class="tab-btn" type="button" id="docker-refresh">Aktualisieren</button></div>
+      <div class="card-body">
+        <div class="banner" id="docker-errors" style="display:none"></div>
+        <div class="scroll-y" style="max-height:520px"><div class="table-wrap"><table><thead><tr><th>Name</th><th>Image</th><th>Status</th><th>CPU</th><th>Speicher</th><th>Uptime</th><th>Ports</th></tr></thead><tbody id="docker-tbody"><tr><td colspan="7" class="loading">Lade Container…</td></tr></tbody></table></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Proxmox View ── -->
+<section class="app-view" data-view="proxmox" hidden>
+  <header class="page-header">
+    <div>
+      <div class="eyebrow">Virtualisierung</div>
+      <h2>Proxmox VM/CT</h2>
+      <p>Übersicht aller virtuellen Maschinen und LXC-Container mit Start/Stop-Steuerung.</p>
+    </div>
+  </header>
+  <div class="grid">
+    <div class="card grid-full" data-view="proxmox">
+      <div class="card-header">💻 VMs & Container <span class="badge" id="proxmox-count">—</span> <button class="tab-btn" type="button" id="proxmox-refresh">Aktualisieren</button></div>
+      <div class="card-body">
+        <div class="banner" id="proxmox-errors" style="display:none"></div>
+        <div class="scroll-y" style="max-height:520px"><div class="table-wrap"><table><thead><tr><th>ID</th><th>Name</th><th>Typ</th><th>Status</th><th>Cores</th><th>Speicher</th><th>Aktion</th></tr></thead><tbody id="proxmox-tbody"><tr><td colspan="7" class="loading">Lade VMs/CTs…</td></tr></tbody></table></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Uptime Kuma View ── -->
+<section class="app-view" data-view="uptime-kuma" hidden>
+  <header class="page-header">
+    <div>
+      <div class="eyebrow">Monitoring</div>
+      <h2>Uptime Kuma</h2>
+      <p>Status aller überwachten Dienste mit Uptime-Prozent und Antwortzeit.</p>
+    </div>
+  </header>
+  <div class="grid">
+    <div class="card grid-full" data-view="uptime-kuma">
+      <div class="card-header">📡 Monitore <button class="tab-btn" type="button" id="uptime-kuma-refresh">Aktualisieren</button></div>
+      <div class="card-body">
+        <div class="banner" id="uptime-kuma-errors" style="display:none"></div>
+        <div class="ipdhcp-summary" id="uptime-kuma-summary" style="margin-bottom:14px"></div>
+        <div class="grid" id="uptime-kuma-grid" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))"><div class="loading">Lade Monitore…</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="js/utils.js?v=2"></script>
 <script src="js/charts.js?v=2"></script>
 <script src="js/app.js?v=2"></script>
+<script src="js/theme.js?v=2"></script>
+<script src="js/pwa.js?v=2"></script>
+<script src="js/device_labels.js?v=2"></script>
+<script src="js/trends.js?v=2"></script>
+<script src="js/starlink_outages.js?v=2"></script>
+<script src="js/wol.js?v=2"></script>
+<script src="js/nat.js?v=2"></script>
+<script src="js/vpn.js?v=2"></script>
+<script src="js/speedtest.js?v=2"></script>
+<script src="js/wan_failover.js?v=2"></script>
+<script src="js/docker_status.js?v=2"></script>
+<script src="js/proxmox.js?v=2"></script>
+<script src="js/uptime_kuma.js?v=2"></script>
 </body>
 </html>
