@@ -133,7 +133,7 @@ const sparkCharts = {};
 const starlinkLatencyChart = { instance: null };
 const starlinkThroughputChart = { instance: null };
 
-function updateStarlinkLatencyChart(latencyMs, dropRate) {
+window.updateStarlinkLatencyChart = function updateStarlinkLatencyChart(latencyMs, dropRate) {
   const ctx = document.getElementById('chart-starlink-latency');
   if (!ctx) return;
   if (starlinkLatencyChart.instance) starlinkLatencyChart.instance.destroy();
@@ -175,7 +175,7 @@ function updateStarlinkLatencyChart(latencyMs, dropRate) {
   });
 }
 
-function updateStarlinkThroughputChart(downlink, uplink) {
+window.updateStarlinkThroughputChart = function updateStarlinkThroughputChart(downlink, uplink) {
   const ctx = document.getElementById('chart-starlink-throughput');
   if (!ctx) return;
   if (starlinkThroughputChart.instance) starlinkThroughputChart.instance.destroy();
