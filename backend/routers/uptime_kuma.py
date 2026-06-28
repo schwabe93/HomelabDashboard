@@ -38,7 +38,6 @@ async def fetch_via_socketio() -> list[dict[str, Any]]:
     monitors = []
     got_data = asyncio.Event()
 
-    @sio.on("monitorList")
     async def on_monitor_list(data):
         nonlocal monitors
         if isinstance(data, list):
@@ -47,12 +46,8 @@ async def fetch_via_socketio() -> list[dict[str, Any]]:
             monitors = [m for m in data.values() if isinstance(m, dict)]
         got_data.set()
 
-    @sio.on("init")
-    async def on_init(data):
-        # Kuma sends initial data on connect
-        pass
-
     await sio.connect(base, transports=["polling"], socketio_path="/socket.io")
+    sio.on("monitorList", on_monitor_list)
 
     # Login if credentials provided
     if UPTIME_KUMA_USERNAME and UPTIME_KUMA_PASSWORD:
