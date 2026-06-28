@@ -53,11 +53,17 @@
   <span id="last-update"></span>
 </div>
 
+<nav class="app-tabs" aria-label="Dashboard Bereiche">
+  <button class="app-tab active" type="button" data-view-target="dashboard">Dashboard</button>
+  <button class="app-tab" type="button" data-view-target="ip-management">IP Management</button>
+  <button class="app-tab" type="button" data-view-target="starlink">Starlink</button>
+</nav>
+
 <!-- ── Grid ── -->
 <div class="grid">
 
   <!-- Gateway Status -->
-  <div class="card">
+  <div class="card" data-view="dashboard">
     <div class="card-header">🔗 Gateway Status</div>
     <div class="card-body" id="gateways-body">
       <div class="loading">Warte auf Daten…</div>
@@ -65,7 +71,7 @@
   </div>
 
   <!-- DNS Stats -->
-  <div class="card">
+  <div class="card" data-view="dashboard">
     <div class="card-header">🔍 Unbound DNS</div>
     <div class="card-body">
       <div class="stat-row">
@@ -93,7 +99,7 @@
   </div>
 
   <!-- Traffic History -->
-  <div class="card grid-full">
+  <div class="card grid-full" data-view="dashboard">
     <div class="card-header">
       📊 Download / Upload Statistik
       <div class="tabs" style="margin:0">
@@ -116,7 +122,7 @@
   </div>
 
   <!-- Interface Traffic -->
-  <div class="card grid-full">
+  <div class="card grid-full" data-view="dashboard">
     <div class="card-header">📡 Interface Traffic <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(letzte 1h)</span></div>
     <div class="card-body">
       <div class="iface-grid" id="iface-grid"></div>
@@ -124,7 +130,7 @@
   </div>
 
   <!-- Interface Errors -->
-  <div class="card">
+  <div class="card" data-view="dashboard">
     <div class="card-header">⚠️ Interface Fehler</div>
     <div class="card-body">
       <div class="table-wrap">
@@ -137,7 +143,7 @@
   </div>
 
   <!-- Firewall States -->
-  <div class="card">
+  <div class="card" data-view="dashboard">
     <div class="card-header">🔥 Firewall States</div>
     <div class="card-body">
       <div class="stat-row">
@@ -157,7 +163,7 @@
   </div>
 
   <!-- Top Blocked IPs -->
-  <div class="card">
+  <div class="card" data-view="dashboard">
     <div class="card-header">🚫 Top Blocked IPs <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(1h)</span></div>
     <div class="card-body">
       <div class="scroll-y" style="max-height:260px">
@@ -170,7 +176,7 @@
   </div>
 
   <!-- System Health -->
-  <div class="card">
+  <div class="card" data-view="dashboard">
     <div class="card-header">💻 System Health <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">(6h)</span></div>
     <div class="card-body">
       <div class="chart-wrap" style="height:180px"><canvas id="chart-system"></canvas></div>
@@ -178,7 +184,7 @@
   </div>
 
   <!-- Per-Client Bandwidth -->
-  <div class="card grid-full">
+  <div class="card grid-full" data-view="dashboard">
     <div class="card-header">
       👥 Clients — Bandwidth
       <span class="badge" id="clients-count"></span>
@@ -208,7 +214,7 @@
   </div>
 
   <!-- ARP / Devices -->
-  <div class="card grid-full">
+  <div class="card grid-full view-hidden" data-view="ip-management">
     <div class="card-header">
       IP / DHCP Inventar
       <span class="badge" id="ipdhcp-count">-</span>
@@ -270,7 +276,54 @@
     </div>
   </div>
 
-  <div class="card grid-full">
+  <div class="card grid-full view-hidden" data-view="starlink">
+    <div class="card-header">
+      Starlink
+      <span class="badge" id="starlink-state">-</span>
+    </div>
+    <div class="card-body">
+      <div class="starlink-hero">
+        <div>
+          <div class="starlink-title">Dish Status</div>
+          <div class="starlink-subtitle" id="starlink-host">192.168.100.1</div>
+        </div>
+        <button class="tab-btn" type="button" id="starlink-refresh">Aktualisieren</button>
+      </div>
+      <div class="ipdhcp-summary" id="starlink-summary">
+        <div class="stat-box"><div class="big-num">-</div><div class="big-label">Ping</div></div>
+        <div class="stat-box"><div class="big-num">-</div><div class="big-label">gRPC</div></div>
+        <div class="stat-box"><div class="big-num">-</div><div class="big-label">Latenz</div></div>
+        <div class="stat-box"><div class="big-num">-</div><div class="big-label">Uptime</div></div>
+      </div>
+      <div class="starlink-grid">
+        <div>
+          <div class="section-label">Verbindung</div>
+          <div class="table-wrap">
+            <table>
+              <tbody id="starlink-connection">
+                <tr><td colspan="2" class="loading">Warte auf Daten...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div class="section-label">Dish Werte</div>
+          <div class="table-wrap">
+            <table>
+              <tbody id="starlink-metrics">
+                <tr><td colspan="2" class="loading">Warte auf Daten...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="banner" id="starlink-errors" style="display:none"></div>
+      <div class="section-label">Rohdaten</div>
+      <pre class="raw-block" id="starlink-raw">Noch keine Daten</pre>
+    </div>
+  </div>
+
+  <div class="card grid-full" data-view="dashboard">
     <div class="card-header">
       🖥️ Geräte im Netzwerk
       <span class="badge" id="hosts-count">—</span>

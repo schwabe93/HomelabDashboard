@@ -16,3 +16,6 @@ UNRAID_PASSWORD = os.getenv("UNRAID_PASSWORD", "")
 UNRAID_HOSTKEY = os.getenv("UNRAID_HOSTKEY", "")
 UNRAID_SSH_MODE = os.getenv("UNRAID_SSH_MODE", "auto").lower()
 PLINK_EXE = os.getenv("PLINK_EXE", "plink.exe")
+
+STARLINK_HOST = os.getenv("STARLINK_HOST", "192.168.100.1")
+STARLINK_GRPC_PORT = int(os.getenv("STARLINK_GRPC_PORT", "9200"))

@@ -7,7 +7,7 @@ from database import init_db
 from scheduler import start_scheduler, stop_scheduler
 from collectors import system_stats, interface_traffic, firewall_states, arp_hosts
 from collectors.opnsense_client import close_client
-from routers import system, interfaces, clients, firewall, hosts, gateways, dns, wan, traffic, ipdhcp
+from routers import system, interfaces, clients, firewall, hosts, gateways, dns, wan, traffic, ipdhcp, starlink
 
 
 @asynccontextmanager
@@ -39,5 +39,6 @@ app.include_router(dns.router,        prefix="/api")
 app.include_router(wan.router,        prefix="/api")
 app.include_router(traffic.router,    prefix="/api")
 app.include_router(ipdhcp.router,     prefix="/api")
+app.include_router(starlink.router,   prefix="/api")
 
 app.mount("/", StaticFiles(directory="../frontend", html=True), name="frontend")

@@ -5,13 +5,38 @@ let hostFilter = '';
 let ipdhcpFilter = '';
 let ipdhcpSource = '';
 let ipdhcpData = null;
+let starlinkData = null;
 let expandedClient = null;
 let currentTrafficPeriod = 'day';
+let currentView = 'dashboard';
 
 async function fetchJSON(url) {
   const r = await fetch(API + url);
   if (!r.ok) throw new Error(r.status);
   return r.json();
+}
+
+function setView(view) {
+  currentView = view;
+  document.querySelectorAll('.app-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.viewTarget === view));
+  document.querySelectorAll('[data-view]').forEach(card => card.classList.toggle('view-hidden', card.dataset.view !== view));
+  if (view === 'ip-management' && !ipdhcpData) refreshIpdhcp();
+  if (view === 'starlink' && !starlinkData) refreshStarlink();
+}
+
+function yesNo(value) {
+  return value ? 'Ja' : 'Nein';
+}
+
+function formatSeconds(value) {
+  const seconds = Number(value || 0);
+  if (!seconds) return '-';
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  if (days) return `${days}d ${hours}h`;
+  if (hours) return `${hours}h ${mins}m`;
+  return `${mins}m`;
 }
 
 // ── System header ──────────────────────────────────────────────
@@ -355,6 +380,75 @@ async function refreshIpdhcp() {
   }
 }
 
+function renderStarlinkSummary(data) {
+  const status = data.grpc?.status || {};
+  const latency = status.pop_ping_latency_ms;
+  const stats = [
+    [yesNo(data.reachable), 'Ping'],
+    [yesNo(data.grpc_open), 'gRPC'],
+    [latency == null ? '-' : `${latency} ms`, 'Latenz'],
+    [formatSeconds(status.uptime_s), 'Uptime'],
+  ];
+  document.getElementById('starlink-summary').innerHTML = stats.map(([value, label]) =>
+    `<div class="stat-box"><div class="big-num">${escapeHtml(value)}</div><div class="big-label">${escapeHtml(label)}</div></div>`
+  ).join('');
+  const online = data.reachable || data.grpc_open;
+  document.getElementById('starlink-state').textContent = online ? 'online' : 'offline';
+  document.getElementById('starlink-state').style.color = online ? 'var(--green)' : 'var(--red)';
+  document.getElementById('starlink-host').textContent = `${data.host}${data.ip ? ` (${data.ip})` : ''}`;
+}
+
+function metricRow(label, value) {
+  return `<tr><td>${escapeHtml(label)}</td><td class="mono">${escapeHtml(value ?? '-')}</td></tr>`;
+}
+
+function renderStarlink(data) {
+  const grpc = data.grpc || {};
+  const status = grpc.status || {};
+  renderStarlinkSummary(data);
+  document.getElementById('starlink-connection').innerHTML = [
+    metricRow('Host', data.host),
+    metricRow('IP', data.ip),
+    metricRow('HTTP', data.http?.reachable ? `HTTP ${data.http.status_code}` : data.http?.error || 'nicht erreichbar'),
+    metricRow('gRPC Port', `${data.grpc_port} ${data.grpc_open ? 'offen' : 'geschlossen'}`),
+    metricRow('grpcurl', grpc.available ? 'installiert' : 'nicht installiert'),
+    metricRow('Aktualisiert', data.generated_at),
+    metricRow('Laufzeit', `${data.duration_ms} ms`),
+  ].join('');
+
+  document.getElementById('starlink-metrics').innerHTML = [
+    metricRow('Dish ID', status.id),
+    metricRow('Status', status.state),
+    metricRow('Software', status.software_version),
+    metricRow('Uptime', formatSeconds(status.uptime_s)),
+    metricRow('Ping Latenz', status.pop_ping_latency_ms == null ? '-' : `${status.pop_ping_latency_ms} ms`),
+    metricRow('Downlink', status.downlink_throughput_bps == null ? '-' : formatBits(status.downlink_throughput_bps)),
+    metricRow('Uplink', status.uplink_throughput_bps == null ? '-' : formatBits(status.uplink_throughput_bps)),
+  ].join('');
+
+  const errors = [];
+  if (grpc.error) errors.push(grpc.error);
+  if (!grpc.available) errors.push('Fuer echte Dish-Statuswerte grpcurl auf dem Server installieren.');
+  const errorBox = document.getElementById('starlink-errors');
+  errorBox.style.display = errors.length ? 'flex' : 'none';
+  errorBox.textContent = errors.join(' | ');
+  document.getElementById('starlink-raw').textContent = JSON.stringify(data, null, 2);
+}
+
+async function refreshStarlink() {
+  const button = document.getElementById('starlink-refresh');
+  button.disabled = true;
+  try {
+    starlinkData = await fetchJSON('/api/starlink/status');
+    renderStarlink(starlinkData);
+  } catch (e) {
+    document.getElementById('starlink-errors').style.display = 'flex';
+    document.getElementById('starlink-errors').textContent = `Starlink konnte nicht geladen werden: ${e.message}`;
+  } finally {
+    button.disabled = false;
+  }
+}
+
 // ── Gateways ───────────────────────────────────────────────────
 async function refreshGateways() {
   try {
@@ -442,16 +536,20 @@ async function refreshCharts() {
 refreshAll();
 refreshCharts();
 refreshIpdhcp();
+refreshStarlink();
 setInterval(refreshAll, 30_000);
 setInterval(refreshCharts, 60_000);
 setInterval(refreshIpdhcp, 300_000);
+setInterval(refreshStarlink, 60_000);
 
 // Search
+document.querySelectorAll('.app-tab').forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.viewTarget)));
 document.getElementById('client-search').addEventListener('input', e => { clientFilter = e.target.value; refreshClients(); });
 document.getElementById('host-search').addEventListener('input',   e => { hostFilter   = e.target.value; refreshHosts();   });
 document.getElementById('ipdhcp-search').addEventListener('input', e => { ipdhcpFilter = e.target.value; renderIpdhcpHosts(); });
 document.getElementById('ipdhcp-source').addEventListener('change', e => { ipdhcpSource = e.target.value; renderIpdhcpHosts(); });
 document.getElementById('ipdhcp-refresh').addEventListener('click', refreshIpdhcp);
+document.getElementById('starlink-refresh').addEventListener('click', refreshStarlink);
 document.getElementById('ipdhcp-lease-pick').addEventListener('change', e => {
   const item = e.target._leases?.[Number(e.target.value)];
   if (!item) return;

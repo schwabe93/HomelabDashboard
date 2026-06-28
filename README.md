@@ -24,6 +24,7 @@ Self-hosted Monitoring Dashboard für OPNsense — läuft auf Ubuntu Server, zei
 | **System Health** | CPU%, RAM, Load Average — 6h Verlauf |
 | **Geräte im Netzwerk** | ARP-Tabelle mit Hersteller-Info + Suche |
 | **IP / DHCP Inventar** | Dnsmasq Leases, Static Hosts, ARP, DNS Overrides und Unraid Docker/VM IPs inkl. Static-Lease-Formular |
+| **Starlink** | Verbindungstest zur Dish-IP `192.168.100.1`, gRPC-Port-Check und optionale Dish-Werte via `grpcurl` |
 
 ---
 
@@ -89,7 +90,11 @@ UNRAID_HOST=192.168.188.160
 UNRAID_USER=root
 UNRAID_PASSWORD=
 UNRAID_SSH_MODE=auto
+STARLINK_HOST=192.168.100.1
+STARLINK_GRPC_PORT=9200
 ```
+
+Für echte Starlink-Dish-Werte zusätzlich auf dem Server `grpcurl` installieren. Ohne `grpcurl` zeigt der Tab trotzdem Ping, HTTP und gRPC-Erreichbarkeit an.
 
 ### 5. Systemd Service
 

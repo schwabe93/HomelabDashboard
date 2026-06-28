@@ -84,6 +84,35 @@ body {
 #wan-pills { display: contents; }
 #last-update { margin-left: auto; color: var(--muted); font-size: 10px; white-space: nowrap; }
 
+.app-tabs {
+  position: sticky;
+  top: 43px;
+  z-index: 90;
+  display: flex;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(13, 17, 23, .96);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(8px);
+}
+
+.app-tab {
+  min-height: 30px;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.app-tab:hover { color: var(--text); border-color: var(--accent); }
+.app-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.view-hidden { display: none; }
+
 /* ── Grid ── */
 .grid {
   display: grid;
@@ -409,6 +438,45 @@ tr:hover td { background: var(--card2); }
   font-size: 12px;
 }
 
+.starlink-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.starlink-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.starlink-subtitle {
+  margin-top: 2px;
+  color: var(--muted);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12px;
+}
+
+.starlink-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.raw-block {
+  max-height: 320px;
+  overflow: auto;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card2);
+  color: var(--muted);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 11px;
+  white-space: pre-wrap;
+}
+
 /* ── Big number ── */
 .big-num {
   font-size: 30px;
@@ -451,6 +519,7 @@ tr:hover td { background: var(--card2); }
   #header { padding: 6px 10px; gap: 5px; overflow-x: auto; flex-wrap: nowrap; }
   #header h1 { font-size: 13px; }
   #last-update { display: none; }
+  .app-tabs { top: 35px; overflow-x: auto; padding: 7px 10px; }
 
   .grid { grid-template-columns: 1fr; padding: 8px 10px; gap: 8px; }
   .grid-full { grid-column: 1; }
@@ -464,7 +533,8 @@ tr:hover td { background: var(--card2); }
   .ipdhcp-summary { grid-template-columns: 1fr 1fr; }
   .ipdhcp-actions,
   .ipdhcp-split,
-  .ipdhcp-form { grid-template-columns: 1fr; }
+  .ipdhcp-form,
+  .starlink-grid { grid-template-columns: 1fr; }
 
   .scroll-y { max-height: 200px; }
 }
