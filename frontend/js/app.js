@@ -451,6 +451,67 @@ function renderStarlink(data) {
   const grpc = data.grpc || {};
   const status = grpc.status || {};
   renderStarlinkSummary(data);
+
+  // History summary
+  const hist = data.history?.history || {};
+  const summary = hist.summary || {};
+  const histBoxes = [
+    [summary.avg_latency_ms != null ? `${summary.avg_latency_ms}` : '-', 'Ø Latenz'],
+    [summary.max_latency_ms != null ? `${summary.max_latency_ms}` : '-', 'Max Latenz'],
+    [summary.avg_drop_rate != null ? `${(summary.avg_drop_rate * 100).toFixed(1)}%` : '-', 'Ø Drop'],
+    [summary.unavailable_pct != null ? `${summary.unavailable_pct}%` : '-', 'Unavailable'],
+    [summary.p95_latency_ms != null ? `${summary.p95_latency_ms}` : '-', 'P95 Latenz'],
+    [summary.avg_downlink_bps != null ? formatBits(summary.avg_downlink_bps) : '-', 'Ø Download'],
+  ];
+  document.getElementById('starlink-history-summary').innerHTML = histBoxes.map(([value, label]) =>
+    `<div class="stat-box"><div class="big-num">${escapeHtml(value)}</div><div class="big-label">${escapeHtml(label)}</div></div>`
+  ).join('');
+
+  // Render charts
+  if (hist.ping_latency_ms || hist.ping_drop_rate) {
+    updateStarlinkLatencyChart(hist.ping_latency_ms || [], hist.ping_drop_rate || []);
+  }
+  if (hist.downlink_bps || hist.uplink_bps) {
+    updateStarlinkThroughputChart(hist.downlink_bps || [], hist.uplink_bps || []);
+  }
+
+  // Alerts
+  const alerts = status.alerts || {};
+  const activeAlerts = Object.entries(alerts).filter(([k, v]) => v === true);
+  const alertsLabel = document.getElementById('starlink-alerts-label');
+  const alertsBox = document.getElementById('starlink-alerts');
+  if (activeAlerts.length) {
+    alertsLabel.style.display = '';
+    alertsBox.innerHTML = activeAlerts.map(([key]) =>
+      `<span class="mini-chip" style="border-color:var(--red);color:var(--red)">⚠️ ${escapeHtml(key.replace(/_/g, ' '))}</span>`
+    ).join('');
+  } else {
+    alertsLabel.style.display = 'none';
+    alertsBox.innerHTML = '';
+  }
+
+  // Obstruction stats
+  const obs = status.obstruction_stats || {};
+  const hasObs = Object.values(obs).some(v => v != null);
+  const obsLabel = document.getElementById('starlink-obstruction-label');
+  const obsWrap = document.getElementById('starlink-obstruction-wrap');
+  if (hasObs) {
+    obsLabel.style.display = '';
+    obsWrap.style.display = '';
+    document.getElementById('starlink-obstruction').innerHTML = [
+      metricRow('Fraction Obstructed', obs.fraction_obstructed != null ? `${(obs.fraction_obstructed * 100).toFixed(2)}%` : '-'),
+      metricRow('Currently Obstructed', obs.currently_obstructed ? 'Ja' : 'Nein'),
+      metricRow('Valid', obs.valid_s != null ? `${obs.valid_s}s` : '-'),
+      metricRow('Time Obstructed', obs.time_obstructed != null ? `${obs.time_obstructed}s` : '-'),
+      metricRow('Time Obstructed %', obs.time_obstructed_pct != null ? `${obs.time_obstructed_pct}%` : '-'),
+      metricRow('Patches Obstructed', obs.patches_obstructed),
+      metricRow('Avg Prolonged Obstruction', obs.avg_prolonged_obstruction_interval_s != null ? `${obs.avg_prolonged_obstruction_interval_s}s` : '-'),
+    ].join('');
+  } else {
+    obsLabel.style.display = 'none';
+    obsWrap.style.display = 'none';
+  }
+
   document.getElementById('starlink-connection').innerHTML = [
     metricRow('Host', data.host),
     metricRow('IP', data.ip),
@@ -459,21 +520,31 @@ function renderStarlink(data) {
     metricRow('grpcurl', grpc.available ? 'installiert' : 'nicht installiert'),
     metricRow('Aktualisiert', data.generated_at),
     metricRow('Laufzeit', `${data.duration_ms} ms`),
+    metricRow('Hardware', status.hardware_version),
+    metricRow('Country', status.country_code),
   ].join('');
 
   document.getElementById('starlink-metrics').innerHTML = [
     metricRow('Dish ID', status.id),
     metricRow('Status', status.state),
     metricRow('Software', status.software_version),
+    metricRow('Bootcount', status.bootcount),
     metricRow('Uptime', formatSeconds(status.uptime_s)),
     metricRow('Ping Latenz', status.pop_ping_latency_ms == null ? '-' : `${status.pop_ping_latency_ms} ms`),
+    metricRow('Ping Drop Rate', status.pop_ping_drop_rate != null ? `${(status.pop_ping_drop_rate * 100).toFixed(2)}%` : '-'),
+    metricRow('Initial Ping Drop', status.initial_ping_drop_rate != null ? `${(status.initial_ping_drop_rate * 100).toFixed(2)}%` : '-'),
     metricRow('Downlink', status.downlink_throughput_bps == null ? '-' : formatBits(status.downlink_throughput_bps)),
     metricRow('Uplink', status.uplink_throughput_bps == null ? '-' : formatBits(status.uplink_throughput_bps)),
+    metricRow('Sec to Nonempty Slot', status.seconds_to_first_nonempty_slot),
+    metricRow('Mobile Country Code', status.mobile_country_code),
+    metricRow('Mobile Network Code', status.mobile_network_code),
   ].join('');
 
   const errors = [];
   if (grpc.error) errors.push(grpc.error);
   if (!grpc.available) errors.push('Fuer echte Dish-Statuswerte grpcurl auf dem Server installieren.');
+  if (data.history?.error) errors.push(data.history.error);
+  if (!data.history?.available && grpc.available) errors.push('History-Daten konnten nicht abgerufen werden.');
   const errorBox = document.getElementById('starlink-errors');
   errorBox.style.display = errors.length ? 'flex' : 'none';
   errorBox.textContent = errors.join(' | ');

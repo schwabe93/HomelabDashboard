@@ -129,6 +129,78 @@ function buildTrafficChart(labels, datasets) {
 
 const sparkCharts = {};
 
+// ── Starlink charts ──
+const starlinkLatencyChart = { instance: null };
+const starlinkThroughputChart = { instance: null };
+
+function updateStarlinkLatencyChart(latencyMs, dropRate) {
+  const ctx = document.getElementById('chart-starlink-latency');
+  if (!ctx) return;
+  if (starlinkLatencyChart.instance) starlinkLatencyChart.instance.destroy();
+
+  const labels = latencyMs.map((_, i) => i);
+  const datasets = [
+    {
+      label: 'Latenz (ms)',
+      data: latencyMs,
+      borderColor: '#38bdf8',
+      backgroundColor: 'rgba(56,189,248,.1)',
+      borderWidth: 1.5, pointRadius: 0, fill: true, tension: 0.3,
+      yAxisID: 'y',
+    },
+  ];
+  if (dropRate && dropRate.length) {
+    datasets.push({
+      label: 'Drop Rate (%)',
+      data: dropRate.map(d => d != null ? d * 100 : 0),
+      borderColor: '#ef4444',
+      backgroundColor: 'rgba(239,68,68,.1)',
+      borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0.3,
+      yAxisID: 'y1',
+    });
+  }
+
+  starlinkLatencyChart.instance = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: { duration: 300 },
+      plugins: { legend: { display: true, labels: { color: '#94a3b8', font: { size: 10 }, boxWidth: 12 } } },
+      scales: {
+        x: { ticks: { color: '#94a3b8', font: { size: 9 }, maxTicksLimit: 8 }, grid: { color: '#21262d' } },
+        y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: '#21262d' }, beginAtZero: true, title: { display: true, text: 'ms', color: '#94a3b8', font: { size: 10 } } },
+        y1: { position: 'right', ticks: { color: '#ef4444', font: { size: 10 }, callback: v => v + '%' }, grid: { display: false }, beginAtZero: true, max: 100, title: { display: true, text: '%', color: '#ef4444', font: { size: 10 } } },
+      },
+    },
+  });
+}
+
+function updateStarlinkThroughputChart(downlink, uplink) {
+  const ctx = document.getElementById('chart-starlink-throughput');
+  if (!ctx) return;
+  if (starlinkThroughputChart.instance) starlinkThroughputChart.instance.destroy();
+
+  const labels = downlink.map((_, i) => i);
+  starlinkThroughputChart.instance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: '▼ Download', data: downlink, borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,.1)', borderWidth: 1.5, pointRadius: 0, fill: true, tension: 0.3 },
+        { label: '▲ Upload', data: uplink, borderColor: '#818cf8', backgroundColor: 'rgba(129,140,248,.1)', borderWidth: 1.5, pointRadius: 0, fill: true, tension: 0.3 },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: { duration: 300 },
+      plugins: { legend: { display: true, labels: { color: '#94a3b8', font: { size: 10 }, boxWidth: 12 } } },
+      scales: {
+        x: { ticks: { color: '#94a3b8', font: { size: 9 }, maxTicksLimit: 8 }, grid: { color: '#21262d' } },
+        y: { ticks: { color: '#94a3b8', font: { size: 10 }, callback: v => formatBits(v, 0) }, grid: { color: '#21262d' }, beginAtZero: true },
+      },
+    },
+  });
+}
+
 function updateSparkline(canvasId, history) {
   const ctx = document.getElementById(canvasId);
   if (!ctx) return;

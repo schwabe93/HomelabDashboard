@@ -343,6 +343,30 @@
               <div class="stat-box"><div class="big-num">-</div><div class="big-label">Latenz</div></div>
               <div class="stat-box"><div class="big-num">-</div><div class="big-label">Uptime</div></div>
             </div>
+
+            <!-- Summary Stats (from get_history) -->
+            <div class="section-label">Verlaufs-Statistiken (letzte ~1h)</div>
+            <div class="ipdhcp-summary" id="starlink-history-summary">
+              <div class="stat-box"><div class="big-num">-</div><div class="big-label">Ø Latenz</div></div>
+              <div class="stat-box"><div class="big-num">-</div><div class="big-label">Max Latenz</div></div>
+              <div class="stat-box"><div class="big-num">-</div><div class="big-label">Ø Drop</div></div>
+              <div class="stat-box"><div class="big-num">-</div><div class="big-label">Unavailable</div></div>
+              <div class="stat-box"><div class="big-num">-</div><div class="big-label">P95 Latenz</div></div>
+              <div class="stat-box"><div class="big-num">-</div><div class="big-label">Ø Download</div></div>
+            </div>
+
+            <!-- Latency & Drop History Chart -->
+            <div class="section-label">Latenz & Paketverlust Verlauf</div>
+            <div class="chart-wrap" style="height:200px;margin-bottom:12px">
+              <canvas id="chart-starlink-latency"></canvas>
+            </div>
+
+            <!-- Throughput History Chart -->
+            <div class="section-label">Durchsatz Verlauf</div>
+            <div class="chart-wrap" style="height:200px;margin-bottom:12px">
+              <canvas id="chart-starlink-throughput"></canvas>
+            </div>
+
             <div class="starlink-grid">
               <div>
                 <div class="section-label">Verbindung</div>
@@ -365,6 +389,21 @@
                 </div>
               </div>
             </div>
+
+            <!-- Alerts -->
+            <div class="section-label" id="starlink-alerts-label" style="display:none">⚠️ Alerts</div>
+            <div id="starlink-alerts" class="chip-list" style="margin-bottom:12px"></div>
+
+            <!-- Obstruction Stats -->
+            <div class="section-label" id="starlink-obstruction-label" style="display:none">Obstruction Stats</div>
+            <div class="table-wrap" id="starlink-obstruction-wrap" style="display:none;margin-bottom:12px">
+              <table>
+                <tbody id="starlink-obstruction">
+                  <tr><td colspan="2" class="loading">...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
             <div class="banner" id="starlink-errors" style="display:none"></div>
             <div class="section-label">Rohdaten</div>
             <pre class="raw-block" id="starlink-raw">Noch keine Daten</pre>
